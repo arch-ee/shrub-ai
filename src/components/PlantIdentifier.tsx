@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { Camera, Upload, Sprout, Heart, Droplet, Sun, ThermometerSun } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 
 interface PlantInfo {
   name: string;
@@ -16,9 +16,12 @@ interface PlantInfo {
 
 const PlantIdentifier = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState('');
   const [plantInfo, setPlantInfo] = useState<PlantInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  
+  // Using the provided API key directly in the code
+  const apiKey = 'AIzaSyDskk1srl5d4hsWDhSvzZSVi1vezIkgaf8';
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -28,6 +31,46 @@ const PlantIdentifier = () => {
         setSelectedImage(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const identifyPlant = async () => {
+    if (!selectedImage) {
+      toast({
+        title: "no image selected",
+        description: "please take or upload a photo of a plant first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // Mock response for demo purposes
+      // In a real implementation, you would call the Gemini API here
+      setTimeout(() => {
+        setPlantInfo({
+          name: "monstera deliciosa",
+          health: 85,
+          waterNeeds: "medium, water weekly",
+          sunlight: "bright indirect light",
+          temperature: "65-85°F (18-29°C)",
+        });
+        setIsLoading(false);
+      }, 1500);
+      
+      // Here's where you would implement the actual Gemini API call
+      // using the apiKey
+      
+    } catch (error) {
+      console.error("Error identifying plant:", error);
+      toast({
+        title: "identification failed",
+        description: "unable to identify the plant. please try again.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
     }
   };
 
@@ -84,13 +127,13 @@ const PlantIdentifier = () => {
               </Button>
             </div>
 
-            <Input
-              type="text"
-              placeholder="enter your gemini api key"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              className="bg-white/50"
-            />
+            <Button 
+              onClick={identifyPlant}
+              disabled={isLoading || !selectedImage}
+              className="w-full bg-leaf-500 hover:bg-leaf-600 text-white"
+            >
+              {isLoading ? "identifying..." : "identify plant"}
+            </Button>
 
             <input
               type="file"
