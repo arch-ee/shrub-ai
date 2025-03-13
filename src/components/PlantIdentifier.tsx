@@ -47,22 +47,99 @@ const PlantIdentifier = () => {
     setIsLoading(true);
     
     try {
-      // Mock response for demo purposes
-      // In a real implementation, you would call the Gemini API here
-      setTimeout(() => {
+      // Extract base64 image data (remove data:image/jpeg;base64, prefix)
+      const base64Image = selectedImage.split(',')[1];
+      
+      // Prepare request for Gemini API
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: "Identify this plant from the image. Provide the following information in JSON format with these fields exactly: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, description, careInstructions. Don't include any other text."
+                },
+                {
+                  inline_data: {
+                    mime_type: "image/jpeg",
+                    data: base64Image
+                  }
+                }
+              ]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.4,
+            topK: 32,
+            topP: 1,
+            maxOutputTokens: 1024,
+          }
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.candidates || data.candidates.length === 0) {
+        throw new Error('No response from API');
+      }
+      
+      // Extract the text response
+      const textResponse = data.candidates[0].content.parts[0].text;
+      
+      // Try to parse JSON from the response
+      try {
+        // Find JSON in the response (it might be surrounded by markdown code blocks)
+        const jsonMatch = textResponse.match(/```json\n([\s\S]*?)\n```/) || 
+                         textResponse.match(/```\n([\s\S]*?)\n```/) || 
+                         [null, textResponse];
+        
+        const jsonString = jsonMatch[1] || textResponse;
+        const plantData = JSON.parse(jsonString);
+        
         setPlantInfo({
-          name: "monstera deliciosa",
-          health: 85,
-          waterNeeds: "medium, water weekly",
-          sunlight: "bright indirect light",
-          temperature: "65-85°F (18-29°C)",
+          name: plantData.name || 'Unknown plant',
+          health: parseInt(plantData.health) || 70,
+          waterNeeds: plantData.waterNeeds || 'Unknown',
+          sunlight: plantData.sunlight || 'Unknown',
+          temperature: plantData.temperature || 'Unknown',
         });
-        setIsLoading(false);
-      }, 1500);
-      
-      // Here's where you would implement the actual Gemini API call
-      // using the apiKey
-      
+        
+        toast({
+          title: "plant identified",
+          description: `This appears to be a ${plantData.name || 'plant'}.`,
+        });
+      } catch (jsonError) {
+        console.error("Error parsing JSON from response:", jsonError);
+        console.log("Raw text response:", textResponse);
+        
+        // Fallback: extract information using regex if JSON parsing fails
+        const name = textResponse.match(/name:?\s*["']?([^"'\n]+)["']?/i)?.[1] || 'Unknown plant';
+        const health = parseInt(textResponse.match(/health:?\s*["']?(\d+)["']?/i)?.[1] || '70');
+        const waterNeeds = textResponse.match(/waterNeeds:?\s*["']?([^"'\n]+)["']?/i)?.[1] || 'Unknown';
+        const sunlight = textResponse.match(/sunlight:?\s*["']?([^"'\n]+)["']?/i)?.[1] || 'Unknown';
+        const temperature = textResponse.match(/temperature:?\s*["']?([^"'\n]+)["']?/i)?.[1] || 'Unknown';
+        
+        setPlantInfo({
+          name,
+          health,
+          waterNeeds,
+          sunlight,
+          temperature,
+        });
+        
+        toast({
+          title: "plant identified",
+          description: `This appears to be a ${name}.`,
+        });
+      }
     } catch (error) {
       console.error("Error identifying plant:", error);
       toast({
@@ -70,6 +147,7 @@ const PlantIdentifier = () => {
         description: "unable to identify the plant. please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };
