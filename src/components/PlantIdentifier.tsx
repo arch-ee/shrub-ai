@@ -50,8 +50,8 @@ const PlantIdentifier = () => {
       // Extract base64 image data (remove data:image/jpeg;base64, prefix)
       const base64Image = selectedImage.split(',')[1];
       
-      // Prepare request for Gemini API
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`, {
+      // Updated to use gemini-1.5-flash model instead of the deprecated gemini-pro-vision
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ const PlantIdentifier = () => {
             {
               parts: [
                 {
-                  text: "Identify this plant from the image. Provide the following information in JSON format with these fields exactly: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, description, careInstructions. Don't include any other text."
+                  text: "Identify this plant from the image. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature. No explanations, just the JSON."
                 },
                 {
                   inline_data: {
@@ -73,7 +73,7 @@ const PlantIdentifier = () => {
             }
           ],
           generationConfig: {
-            temperature: 0.4,
+            temperature: 0.2,
             topK: 32,
             topP: 1,
             maxOutputTokens: 1024,
@@ -93,6 +93,7 @@ const PlantIdentifier = () => {
       
       // Extract the text response
       const textResponse = data.candidates[0].content.parts[0].text;
+      console.log("Raw API response:", textResponse);
       
       // Try to parse JSON from the response
       try {
