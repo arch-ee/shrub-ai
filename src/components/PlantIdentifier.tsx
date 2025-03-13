@@ -74,7 +74,7 @@ const PlantIdentifier = () => {
             {
               parts: [
                 {
-                  text: "Identify this plant from the image. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature. No explanations, just the JSON."
+                  text: "Identify this plant from the image. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature. If you cannot identify the plant, set name to null. No explanations, just the JSON."
                 },
                 {
                   inline_data: {
@@ -118,40 +118,51 @@ const PlantIdentifier = () => {
         const jsonString = jsonMatch[1] || textResponse;
         const plantData = JSON.parse(jsonString);
         
-        setPlantInfo({
-          name: plantData.name || 'Unknown plant',
-          health: parseInt(plantData.health) || 70,
-          waterNeeds: plantData.waterNeeds || 'Unknown',
-          sunlight: plantData.sunlight || 'Unknown',
-          temperature: plantData.temperature || 'Unknown',
-        });
-        
-        toast({
-          title: "plant identified",
-          description: `This appears to be a ${plantData.name || 'plant'}.`,
-        });
+        if (plantData.name === null) {
+          setPlantInfo({
+            name: 'Unknown plant',
+            health: 0,
+            waterNeeds: 'Unknown',
+            sunlight: 'Unknown',
+            temperature: 'Unknown',
+          });
+          
+          toast({
+            title: "plant not identified",
+            description: "We couldn't identify this plant. Try taking a clearer picture.",
+            variant: "destructive",
+          });
+        } else {
+          setPlantInfo({
+            name: plantData.name || 'Unknown plant',
+            health: parseInt(plantData.health) || 70,
+            waterNeeds: plantData.waterNeeds || 'Unknown',
+            sunlight: plantData.sunlight || 'Unknown',
+            temperature: plantData.temperature || 'Unknown',
+          });
+          
+          toast({
+            title: "plant identified",
+            description: `This appears to be a ${plantData.name || 'plant'}.`,
+          });
+        }
       } catch (jsonError) {
         console.error("Error parsing JSON from response:", jsonError);
         console.log("Raw text response:", textResponse);
         
-        // Fallback: extract information using regex if JSON parsing fails
-        const name = textResponse.match(/name:?\s*["']?([^"'\n]+)["']?/i)?.[1] || 'Unknown plant';
-        const health = parseInt(textResponse.match(/health:?\s*["']?(\d+)["']?/i)?.[1] || '70');
-        const waterNeeds = textResponse.match(/waterNeeds:?\s*["']?([^"'\n]+)["']?/i)?.[1] || 'Unknown';
-        const sunlight = textResponse.match(/sunlight:?\s*["']?([^"'\n]+)["']?/i)?.[1] || 'Unknown';
-        const temperature = textResponse.match(/temperature:?\s*["']?([^"'\n]+)["']?/i)?.[1] || 'Unknown';
-        
+        // Set as unknown plant
         setPlantInfo({
-          name,
-          health,
-          waterNeeds,
-          sunlight,
-          temperature,
+          name: 'Unknown plant',
+          health: 0,
+          waterNeeds: 'Unknown',
+          sunlight: 'Unknown',
+          temperature: 'Unknown',
         });
         
         toast({
-          title: "plant identified",
-          description: `This appears to be a ${name}.`,
+          title: "plant not identified",
+          description: "We couldn't identify this plant. Try taking a clearer picture.",
+          variant: "destructive",
         });
       }
     } catch (error) {
@@ -160,6 +171,15 @@ const PlantIdentifier = () => {
         title: "identification failed",
         description: "unable to identify the plant. please try again.",
         variant: "destructive",
+      });
+      
+      // Set as unknown plant in case of error
+      setPlantInfo({
+        name: 'Unknown plant',
+        health: 0,
+        waterNeeds: 'Unknown',
+        sunlight: 'Unknown',
+        temperature: 'Unknown',
       });
     } finally {
       setIsLoading(false);
