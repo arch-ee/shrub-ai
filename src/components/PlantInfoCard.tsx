@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { Heart, Droplet, Sun, ThermometerSun } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 interface PlantInfo {
   name: string;
@@ -8,6 +10,9 @@ interface PlantInfo {
   waterNeeds: string;
   sunlight: string;
   temperature: string;
+  diagnosis?: string;
+  cure?: string;
+  hasRottenLeaves?: boolean;
 }
 
 interface PlantInfoCardProps {
@@ -85,9 +90,15 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
             </div>
           ) : (
             <>
-              <div className="flex items-center text-sm text-leaf-600">
-                <Heart className="w-4 h-4 mr-2 text-leaf-500" />
-                <span>{getHealthDescription(plantInfo.health)}</span>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-sm text-leaf-600">
+                  <div className="flex items-center">
+                    <Heart className="w-4 h-4 mr-2 text-leaf-500" />
+                    <span>{getHealthDescription(plantInfo.health)}</span>
+                  </div>
+                  <span className="font-medium">{plantInfo.health}%</span>
+                </div>
+                <Progress value={plantInfo.health} className="h-2 bg-leaf-100" />
               </div>
               <div className="flex items-center text-sm text-leaf-600">
                 <Droplet className="w-4 h-4 mr-2 text-leaf-500" />
@@ -101,6 +112,22 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
                 <ThermometerSun className="w-4 h-4 mr-2 text-leaf-500" />
                 <span>temperature: {plantInfo.temperature} {getTemperatureEmoji(plantInfo.temperature)}</span>
               </div>
+              
+              {(plantInfo.diagnosis || plantInfo.hasRottenLeaves) && (
+                <div className="mt-4 p-3 bg-red-50 rounded-md border border-red-100">
+                  <h3 className="font-medium text-red-700 mb-1">Diagnosis 🔍</h3>
+                  <p className="text-sm text-red-600">
+                    {plantInfo.diagnosis || (plantInfo.hasRottenLeaves ? 'This plant has signs of rotten leaves' : '')}
+                  </p>
+                  
+                  {plantInfo.cure && (
+                    <div className="mt-2">
+                      <h3 className="font-medium text-green-700 mb-1">Treatment 💊</h3>
+                      <p className="text-sm text-green-600">{plantInfo.cure}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>
