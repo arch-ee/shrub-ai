@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, ExternalLink, Store, ShoppingBag } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Store {
   name: string;
@@ -31,6 +32,7 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Get user's location
@@ -42,14 +44,25 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
             lng: position.coords.longitude
           });
         },
-        () => {
+        (locationError) => {
+          console.error("Geolocation error:", locationError);
           setError("Unable to retrieve your location. Please enable location services.");
+          toast({
+            title: "Location error",
+            description: "Unable to retrieve your location. Please enable location services in your browser.",
+            variant: "destructive",
+          });
         }
       );
     } else {
       setError("Geolocation is not supported by your browser.");
+      toast({
+        title: "Browser not supported",
+        description: "Geolocation is not supported by your browser.",
+        variant: "destructive",
+      });
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     // Find stores when we have both the user location and plant name
@@ -62,10 +75,17 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
     if (!userLocation) return;
     
     setIsLoading(true);
+    setError(null);
     
     try {
+      console.log("Calling find-plant-stores function with:", {
+        plantName,
+        lat: userLocation.lat,
+        lng: userLocation.lng
+      });
+      
       // Call Supabase Edge Function to find nearby stores
-      const { data, error } = await supabase.functions.invoke('find-plant-stores', {
+      const { data, error: functionError } = await supabase.functions.invoke('find-plant-stores', {
         body: {
           lat: userLocation.lat,
           lng: userLocation.lng,
@@ -73,7 +93,12 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
         }
       });
       
-      if (error) throw error;
+      if (functionError) {
+        console.error('Error from edge function:', functionError);
+        throw new Error(functionError.message);
+      }
+      
+      console.log("Edge function response:", data);
       
       if (data) {
         if (data.nearbyStores) {
@@ -87,6 +112,11 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
     } catch (err) {
       console.error('Error finding stores:', err);
       setError('Failed to find plant stores. Please try again later.');
+      toast({
+        title: "Store lookup failed",
+        description: "We couldn't find plant stores near you. Please try again later.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

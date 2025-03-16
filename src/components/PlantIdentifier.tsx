@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Camera, Upload, Sprout, Lock } from 'lucide-react';
+
+import React, { useState } from 'react';
+import { Camera, Upload, Sprout } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,33 +26,9 @@ const PlantIdentifier = () => {
   const [plantInfo, setPlantInfo] = useState<PlantInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
-  const [scansRemaining, setScansRemaining] = useState(4);
-  const [isPremium, setIsPremium] = useState(false);
   const { toast } = useToast();
   
   const apiKey = 'AIzaSyDskk1srl5d4hsWDhSvzZSVi1vezIkgaf8';
-
-  useEffect(() => {
-    const today = new Date().toDateString();
-    const storedDate = localStorage.getItem('lastScanDate');
-    const storedScans = localStorage.getItem('scansRemaining');
-    const premium = localStorage.getItem('premium') === 'true';
-    
-    setIsPremium(premium);
-    
-    if (storedDate !== today) {
-      localStorage.setItem('lastScanDate', today);
-      localStorage.setItem('scansRemaining', '4');
-      setScansRemaining(4);
-    } else if (storedScans) {
-      setScansRemaining(parseInt(storedScans));
-    }
-  }, []);
-
-  const updateScansRemaining = (scans: number) => {
-    setScansRemaining(scans);
-    localStorage.setItem('scansRemaining', scans.toString());
-  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -73,16 +50,6 @@ const PlantIdentifier = () => {
     setShowCamera(false);
   };
 
-  const handlePayment = () => {
-    toast({
-      title: "Payment feature coming soon",
-      description: "This feature is currently being developed. Please try again later.",
-    });
-    
-    setIsPremium(true);
-    localStorage.setItem('premium', 'true');
-  };
-
   const identifyPlant = async () => {
     if (!selectedImage) {
       toast({
@@ -93,22 +60,9 @@ const PlantIdentifier = () => {
       return;
     }
 
-    if (!isPremium && scansRemaining <= 0) {
-      toast({
-        title: "scan limit reached",
-        description: "you've used all your free scans for today. Upgrade to premium for unlimited scans.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     
     try {
-      if (!isPremium) {
-        updateScansRemaining(scansRemaining - 1);
-      }
-      
       const base64Image = selectedImage.split(',')[1];
       
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
@@ -243,30 +197,10 @@ const PlantIdentifier = () => {
     <div className="min-h-screen bg-gradient-to-b from-cream-50 to-cream-100 p-4 flex flex-col items-center">
       <div className="w-full max-w-md space-y-4">
         <div className="text-center space-y-2 animate-fade-in">
-          <Badge variant="subtle" className="mb-2">shrubAI</Badge>
+          <Badge variant="subtle" className="mb-2 bg-cream-100">shrubAI</Badge>
           <h1 className="text-2xl font-light text-leaf-900">discover your plants</h1>
           <p className="text-sm text-leaf-600">take a photo or upload an image to identify your plant</p>
         </div>
-
-        {!isPremium && scansRemaining > 0 && (
-          <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 text-sm text-amber-800 flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="mr-2">{scansRemaining} free scans remaining today</div>
-            </div>
-          </div>
-        )}
-
-        {!isPremium && scansRemaining <= 0 && (
-          <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 text-sm text-amber-800 flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="mr-2">No free scans remaining today</div>
-            </div>
-            <Button variant="outline" size="sm" className="bg-amber-100 hover:bg-amber-200 border-amber-300" onClick={handlePayment}>
-              <Lock className="w-3 h-3 mr-1" />
-              Unlock Premium ($0.99)
-            </Button>
-          </div>
-        )}
 
         {showCamera ? (
           <CameraView
@@ -313,11 +247,10 @@ const PlantIdentifier = () => {
 
               <Button 
                 onClick={identifyPlant}
-                disabled={isLoading || !selectedImage || (!isPremium && scansRemaining <= 0)}
+                disabled={isLoading || !selectedImage}
                 className="w-full bg-leaf-500 hover:bg-leaf-600 text-white"
               >
-                {isLoading ? "identifying..." : 
-                 (!isPremium && scansRemaining <= 0) ? "no scans remaining" : "identify plant"}
+                {isLoading ? "identifying..." : "identify plant"}
               </Button>
 
               <input
