@@ -2,13 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, ExternalLink, Store, ShoppingBag, Star, Phone, Navigation } from 'lucide-react';
+import { MapPin, ExternalLink, Store, ShoppingBag, Star, Phone, Navigation, ShoppingCart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface NearbyStore {
   name: string;
@@ -21,6 +19,10 @@ interface NearbyStore {
   placeId?: string;
   types?: string[];
   open_now?: boolean;
+  location?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 interface OnlineStore {
@@ -41,6 +43,7 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -85,6 +88,7 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
     
     setIsLoading(true);
     setError(null);
+    setHasSearched(true);
     
     try {
       console.log("Calling find-plant-stores function with:", {
@@ -131,6 +135,16 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
     }
   };
 
+  const getStoreIcon = (storeName: string) => {
+    const storeName_lower = storeName.toLowerCase();
+    if (storeName_lower.includes('home depot')) return '🏠';
+    if (storeName_lower.includes('lowes') || storeName_lower.includes('lowe\'s')) return '🔨';
+    if (storeName_lower.includes('walmart')) return '🛒';
+    if (storeName_lower.includes('nursery') || storeName_lower.includes('garden')) return '🌱';
+    if (storeName_lower.includes('florist')) return '💐';
+    return '🪴';
+  }
+
   if (!plantName || plantName === 'Unknown plant') {
     return null;
   }
@@ -151,6 +165,20 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
           </div>
         )}
 
+        {!hasSearched && !isLoading && (
+          <div className="p-4 bg-leaf-50 rounded-md text-center">
+            <p className="text-leaf-700 mb-3">Using your location to find plants near you</p>
+            <Button 
+              onClick={findStores} 
+              className="bg-leaf-600 hover:bg-leaf-700 text-white"
+              disabled={!userLocation}
+            >
+              <MapPin className="w-4 h-4 mr-2" />
+              Find {plantName} Near Me
+            </Button>
+          </div>
+        )}
+
         {isLoading && (
           <div className="py-8 text-center text-leaf-600">
             <div className="animate-pulse flex flex-col items-center">
@@ -160,9 +188,9 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
           </div>
         )}
 
-        {!isLoading && (
+        {hasSearched && !isLoading && (
           <div className="space-y-6">
-            {nearbyStores.length > 0 && (
+            {nearbyStores.length > 0 ? (
               <div className="space-y-3">
                 <h3 className="font-medium text-leaf-800 flex items-center">
                   <MapPin className="w-4 h-4 mr-2 text-leaf-500" />
@@ -172,9 +200,12 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
                   {nearbyStores.map((store, index) => (
                     <div key={index} className="p-4 bg-leaf-50 rounded-md shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <p className="font-medium text-leaf-800">{store.name}</p>
-                          <p className="text-sm text-leaf-600 mt-1">{store.vicinity}</p>
+                        <div className="flex items-center">
+                          <span className="text-xl mr-2">{getStoreIcon(store.name)}</span>
+                          <div>
+                            <p className="font-medium text-leaf-800">{store.name}</p>
+                            <p className="text-sm text-leaf-600 mt-1">{store.vicinity}</p>
+                          </div>
                         </div>
                         <Badge variant="outline" className="bg-cream-50">
                           {store.distance}
@@ -234,11 +265,10 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
                   ))}
                 </div>
               </div>
-            )}
-
-            {!isLoading && nearbyStores.length === 0 && (
-              <div className="p-4 bg-leaf-50 rounded-md text-leaf-600 text-sm">
-                No plant stores found nearby carrying {plantName}. Try checking online options below.
+            ) : (
+              <div className="p-4 bg-leaf-50 rounded-md text-leaf-600">
+                <p className="mb-2">No plant stores found nearby carrying {plantName}.</p>
+                <p className="text-sm">Try checking online options below or visit general garden centers like Home Depot, Lowe's, or local nurseries.</p>
               </div>
             )}
 
@@ -254,7 +284,6 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
                   {onlineStores.map((store, index) => (
                     <div key={index} 
                       className="p-4 bg-leaf-50 rounded-md shadow-sm hover:shadow-md transition-shadow"
-                      onClick={() => window.open(store.url, '_blank')}
                       style={{ cursor: 'pointer' }}
                     >
                       <div className="flex justify-between items-start">
@@ -271,24 +300,18 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
                       <Button 
                         variant="default" 
                         size="sm" 
-                        className="w-full text-xs"
+                        className="w-full bg-navy-800 hover:bg-navy-900 text-white mt-3 flex items-center justify-center"
                         onClick={(e) => {
                           e.stopPropagation();
                           window.open(store.url, '_blank');
                         }}
                       >
-                        <ExternalLink className="w-3 h-3 mr-1" />
+                        <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
                         Shop {plantName} on {store.name}
                       </Button>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {!isLoading && nearbyStores.length === 0 && onlineStores.length === 0 && (
-              <div className="p-4 bg-red-50 rounded-md text-red-600 text-sm">
-                We couldn't find any stores selling {plantName}. Please try a different plant or check general plant retailers.
               </div>
             )}
           </div>

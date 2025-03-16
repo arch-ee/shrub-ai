@@ -56,95 +56,120 @@ serve(async (req) => {
     }
 
     // Find nearby places that might sell plants
-    const searchTerms = [
-      `${plantName} plant`,
-      "plant nursery",
-      "garden center",
-      "plant shop",
-      "florist",
-      "Home Depot",
-      "Lowes",
-      "GardenWorks",
-      "plant store"
+    // Use search types in parallel to maximize chances of finding relevant stores
+    const searchTypes = [
+      { type: "specific", term: `${plantName} plant` },
+      { type: "general", term: "plant nursery" },
+      { type: "general", term: "garden center" },
+      { type: "general", term: "plant shop" },
+      { type: "store", term: "Home Depot" },
+      { type: "store", term: "Lowes" },
+      { type: "store", term: "garden store" },
     ];
-
-    // Use the first search term for targeted results
-    const radius = 15000; // 15km radius for better coverage
-    const placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&keyword=${encodeURIComponent(
-      searchTerms[0]
-    )}&key=${GOOGLE_MAPS_API_KEY}`;
-
-    console.log("Making Places API request with URL:", placesUrl.replace(GOOGLE_MAPS_API_KEY, "API_KEY_REDACTED"));
     
-    const placesResponse = await fetch(placesUrl);
-    if (!placesResponse.ok) {
-      console.error("Places API error:", await placesResponse.text());
-      throw new Error(`Places API request failed: ${placesResponse.status}`);
+    // Increase radius for better coverage
+    const radius = 20000; // 20km radius
+    let allStores: any[] = [];
+    const placesPromises = [];
+    
+    // Make multiple searches in parallel
+    for (const search of searchTypes) {
+      const placesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&keyword=${encodeURIComponent(search.term)}&key=${GOOGLE_MAPS_API_KEY}`;
+      
+      placesPromises.push(
+        fetch(placesUrl)
+          .then(response => {
+            if (!response.ok) {
+              console.error(`Places API error for ${search.term}:`, response.status);
+              return { results: [] };
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log(`${search.type} search for "${search.term}" found ${data.results?.length || 0} results`);
+            return data.results || [];
+          })
+          .catch(error => {
+            console.error(`Error in ${search.type} search for "${search.term}":`, error);
+            return [];
+          })
+      );
     }
     
-    const placesData = await placesResponse.json();
-    console.log("Places API response status:", placesData.status);
-    console.log("Places API results count:", placesData.results ? placesData.results.length : 0);
-
-    // If no specific plant results, try garden centers and home improvement stores
-    let nearbyStores = placesData.results || [];
+    // Collect all search results
+    const searchResults = await Promise.all(placesPromises);
     
-    // If less than 3 stores found, try with a more generic term
-    if (nearbyStores.length < 3) {
-      console.log("Not enough specific plant stores found, trying garden centers");
-      
-      const genericTerms = ["garden center", "Home Depot", "Lowes", "GardenWorks", "nursery"];
-      
-      for (const term of genericTerms) {
-        if (nearbyStores.length >= 5) break; // Stop if we have enough stores
-        
-        const genericPlacesUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&keyword=${encodeURIComponent(term)}&key=${GOOGLE_MAPS_API_KEY}`;
-
-        const genericResponse = await fetch(genericPlacesUrl);
-        if (!genericResponse.ok) {
-          console.error(`Generic Places API error for ${term}:`, await genericResponse.text());
-          continue;
+    // Combine results while avoiding duplicates
+    const seenPlaceIds = new Set();
+    for (const results of searchResults) {
+      for (const place of results) {
+        if (!seenPlaceIds.has(place.place_id)) {
+          seenPlaceIds.add(place.place_id);
+          allStores.push(place);
         }
-        
-        const genericData = await genericResponse.json();
-        console.log(`Generic Places API (${term}) response status:`, genericData.status);
-        console.log(`Generic Places API (${term}) results count:`, genericData.results ? genericData.results.length : 0);
-        
-        // Add new stores, avoiding duplicates
-        const existingPlaceIds = new Set(nearbyStores.map((store: any) => store.place_id));
-        const newStores = (genericData.results || []).filter((store: any) => !existingPlaceIds.has(store.place_id));
-        
-        nearbyStores = [...nearbyStores, ...newStores];
       }
     }
-
+    
+    console.log(`Total unique stores found: ${allStores.length}`);
+    
+    // Get additional details for each place to get more information
+    const detailedStores = [];
+    const detailsPromises = [];
+    
+    // Get details for up to 8 stores to avoid too many API calls
+    const storesToDetail = allStores.slice(0, 8);
+    
+    for (const store of storesToDetail) {
+      const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${store.place_id}&fields=name,formatted_address,rating,website,formatted_phone_number,opening_hours,geometry&key=${GOOGLE_MAPS_API_KEY}`;
+      
+      detailsPromises.push(
+        fetch(detailsUrl)
+          .then(response => {
+            if (!response.ok) {
+              console.error(`Place Details API error for ${store.name}:`, response.status);
+              return { result: store };
+            }
+            return response.json();
+          })
+          .then(data => {
+            // Merge the details with the original store data
+            return { ...store, ...data.result };
+          })
+          .catch(error => {
+            console.error(`Error getting details for ${store.name}:`, error);
+            return store;
+          })
+      );
+    }
+    
+    const detailedResults = await Promise.all(detailsPromises);
+    detailedStores.push(...detailedResults);
+    
     // Format the nearby stores data
-    const formattedStores = nearbyStores.slice(0, 8).map((place: any) => {
-      // Calculate distance (this is approximate)
+    const formattedStores = detailedStores.map((place: any) => {
+      // Calculate distance
       const storeLat = place.geometry.location.lat;
       const storeLng = place.geometry.location.lng;
       const distance = calculateDistance(lat, lng, storeLat, storeLng);
       
-      // Get place details including website if available
-      let websiteUrl = null;
-      if (place.website) {
-        websiteUrl = place.website;
-      }
-      
-      // Use a direct maps URL for directions
+      // Direct maps URL for directions
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(place.name)}&destination_place_id=${place.place_id}`;
       
       return {
         name: place.name,
-        vicinity: place.vicinity,
-        rating: place.rating || "No rating",
+        vicinity: place.vicinity || place.formatted_address,
+        rating: place.rating || null,
         distance: `${distance.toFixed(1)} km`,
         mapUrl: mapsUrl,
-        website: websiteUrl,
+        website: place.website || null,
         phone: place.formatted_phone_number || null,
         placeId: place.place_id,
         types: place.types || [],
         open_now: place.opening_hours?.open_now,
+        location: {
+          lat: storeLat,
+          lng: storeLng
+        }
       };
     });
 
@@ -153,7 +178,7 @@ serve(async (req) => {
       return parseFloat(a.distance) - parseFloat(b.distance);
     });
 
-    // Generate online store data with direct search links
+    // Generate online store data with logos and improved formatting
     const onlineStores = generateOnlineStores(plantName);
 
     console.log("Returning response with nearby stores:", formattedStores.length);
@@ -163,6 +188,7 @@ serve(async (req) => {
       JSON.stringify({
         nearbyStores: formattedStores,
         onlineStores: onlineStores,
+        userLocation: { lat, lng }
       }),
       {
         status: 200,
@@ -203,7 +229,7 @@ function deg2rad(deg: number): number {
   return deg * (Math.PI / 180);
 }
 
-// Generate online store data with direct search links
+// Generate online store data with direct search links and logos
 function generateOnlineStores(plantName: string): any[] {
   return [
     {
