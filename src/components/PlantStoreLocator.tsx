@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 
 interface NearbyStore {
   name: string;
@@ -196,74 +198,79 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
                   <MapPin className="w-4 h-4 mr-2 text-leaf-500" />
                   Nearby Stores
                 </h3>
-                <div className="grid gap-3 md:grid-cols-2">
-                  {nearbyStores.map((store, index) => (
-                    <div key={index} className="p-4 bg-leaf-50 rounded-md shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center">
-                          <span className="text-xl mr-2">{getStoreIcon(store.name)}</span>
-                          <div>
-                            <p className="font-medium text-leaf-800">{store.name}</p>
-                            <p className="text-sm text-leaf-600 mt-1">{store.vicinity}</p>
+                <ScrollArea className="w-full">
+                  <div className="flex pb-4 space-x-4">
+                    {nearbyStores.map((store, index) => (
+                      <div 
+                        key={index} 
+                        className="flex-shrink-0 w-64 p-4 bg-leaf-50 rounded-md shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex items-center">
+                            <span className="text-xl mr-2">{getStoreIcon(store.name)}</span>
+                            <div>
+                              <p className="font-medium text-leaf-800">{store.name}</p>
+                              <p className="text-sm text-leaf-600 mt-1">{store.vicinity}</p>
+                            </div>
                           </div>
+                          <Badge variant="outline" className="bg-cream-50">
+                            {store.distance}
+                          </Badge>
                         </div>
-                        <Badge variant="outline" className="bg-cream-50">
-                          {store.distance}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center text-sm text-leaf-600 mt-2 mb-3">
-                        {store.rating && (
-                          <div className="flex items-center mr-3">
-                            <Star className="w-3 h-3 mr-1 text-amber-500" />
-                            <span>{store.rating}</span>
-                          </div>
-                        )}
-                        {store.open_now !== undefined && (
-                          <span className={store.open_now ? "text-green-600" : "text-red-500"}>
-                            {store.open_now ? "Open Now" : "Closed"}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="text-xs flex items-center gap-1"
-                          onClick={() => window.open(store.mapUrl, '_blank')}
-                        >
-                          <Navigation className="w-3 h-3" />
-                          Directions
-                        </Button>
                         
-                        {store.website && (
+                        <div className="flex items-center text-sm text-leaf-600 mt-2 mb-3">
+                          {store.rating && (
+                            <div className="flex items-center mr-3">
+                              <Star className="w-3 h-3 mr-1 text-amber-500" />
+                              <span>{store.rating}</span>
+                            </div>
+                          )}
+                          {store.open_now !== undefined && (
+                            <span className={store.open_now ? "text-green-600" : "text-red-500"}>
+                              {store.open_now ? "Open Now" : "Closed"}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2 mt-2">
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="text-xs flex items-center gap-1"
-                            onClick={() => window.open(store.website, '_blank')}
+                            className="text-xs flex items-center gap-1 text-leaf-800"
+                            onClick={() => window.open(store.mapUrl, '_blank')}
                           >
-                            <ExternalLink className="w-3 h-3" />
-                            Website
+                            <Navigation className="w-3 h-3" />
+                            Directions
                           </Button>
-                        )}
-                        
-                        {store.phone && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="text-xs flex items-center gap-1"
-                            onClick={() => window.open(`tel:${store.phone}`, '_blank')}
-                          >
-                            <Phone className="w-3 h-3" />
-                            Call
-                          </Button>
-                        )}
+                          
+                          {store.website && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-xs flex items-center gap-1 text-leaf-800"
+                              onClick={() => window.open(store.website, '_blank')}
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Website
+                            </Button>
+                          )}
+                          
+                          {store.phone && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-xs flex items-center gap-1 text-leaf-800"
+                              onClick={() => window.open(`tel:${store.phone}`, '_blank')}
+                            >
+                              <Phone className="w-3 h-3" />
+                              Call
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               </div>
             ) : (
               <div className="p-4 bg-leaf-50 rounded-md text-leaf-600">
@@ -280,38 +287,44 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
                   <ShoppingBag className="w-4 h-4 mr-2 text-leaf-500" />
                   Buy Online
                 </h3>
-                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                  {onlineStores.map((store, index) => (
-                    <div key={index} 
-                      className="p-4 bg-leaf-50 rounded-md shadow-sm hover:shadow-md transition-shadow"
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <div className="flex justify-between items-start">
-                        <p className="font-medium text-leaf-800">{store.name}</p>
-                        {store.price && (
-                          <Badge variant="outline" className="bg-cream-50">
-                            {store.price}
-                          </Badge>
-                        )}
-                      </div>
-                      {store.description && (
-                        <p className="text-sm text-leaf-600 mt-2 mb-3">{store.description}</p>
-                      )}
-                      <Button 
-                        variant="default" 
-                        size="sm" 
-                        className="w-full bg-navy-800 hover:bg-navy-900 text-white mt-3 flex items-center justify-center"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(store.url, '_blank');
-                        }}
-                      >
-                        <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
-                        Shop {plantName} on {store.name}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                <Carousel className="w-full">
+                  <CarouselContent>
+                    {onlineStores.map((store, index) => (
+                      <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                        <div 
+                          className="p-4 bg-leaf-50 rounded-md shadow-sm hover:shadow-md transition-shadow h-full flex flex-col"
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="flex justify-between items-start">
+                            <p className="font-medium text-leaf-800">{store.name}</p>
+                            {store.price && (
+                              <Badge variant="outline" className="bg-cream-50">
+                                {store.price}
+                              </Badge>
+                            )}
+                          </div>
+                          {store.description && (
+                            <p className="text-sm text-leaf-600 mt-2 mb-3">{store.description}</p>
+                          )}
+                          <div className="mt-auto pt-3">
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              className="w-full bg-leaf-600 hover:bg-leaf-700 text-white flex items-center justify-center"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(store.url, '_blank');
+                              }}
+                            >
+                              <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
+                              Shop on {store.name}
+                            </Button>
+                          </div>
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
               </div>
             )}
           </div>
