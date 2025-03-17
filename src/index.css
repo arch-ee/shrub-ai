@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,4 +99,9 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Dark Mode Transitions */
+.dark-transition {
+  @apply transition-colors duration-300 ease-in-out;
 }
