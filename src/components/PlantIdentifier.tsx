@@ -19,6 +19,11 @@ interface PlantInfo {
   diagnosis?: string;
   cure?: string;
   hasRottenLeaves?: boolean;
+  isEdible?: boolean;
+  toxicity?: string;
+  edibleParts?: string;
+  warningSymptoms?: string;
+  isFungus?: boolean;
 }
 
 const PlantIdentifier = () => {
@@ -69,7 +74,7 @@ const PlantIdentifier = () => {
     if (!selectedImage) {
       toast({
         title: "No image selected",
-        description: "Please take or upload a photo of a plant first",
+        description: "Please take or upload a photo of a plant, berry, fruit or fungus first",
         variant: "destructive",
       });
       return;
@@ -80,7 +85,7 @@ const PlantIdentifier = () => {
     try {
       const base64Image = selectedImage.split(',')[1];
       
-      // Updated to use Gemini 2.0
+      // Updated to use Gemini 2.0 with edibility and toxicity analysis
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
@@ -91,7 +96,7 @@ const PlantIdentifier = () => {
             {
               parts: [
                 {
-                  text: "Identify this plant from the image. Analyze its health condition and check if it has any diseases or rotten leaves. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations). If you cannot identify the plant, set name to null. No explanations, just the JSON."
+                  text: "Identify this plant, fruit, berry, or fungus from the image. Focus especially on whether it's edible or not, potential toxicity, and any warnings for human consumption. If it's a harmful plant (like poison ivy/oak) that can cause irritation on contact, mention that specifically. Analyze its health condition if relevant. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, isFungus (boolean), health (as a percentage from 0-100 based on visible condition), isEdible (boolean), edibleParts (which parts can be eaten, if any), toxicity (none, mild, moderate, severe), warningSymptoms (if toxic, what symptoms may occur), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations). If you cannot identify the plant, set name to null. No explanations, just the JSON."
                 },
                 {
                   inline_data: {
@@ -139,11 +144,13 @@ const PlantIdentifier = () => {
             waterNeeds: 'Unknown',
             sunlight: 'Unknown',
             temperature: 'Unknown',
+            isEdible: false,
+            toxicity: 'Unknown',
           });
           
           toast({
-            title: "Plant not identified",
-            description: "We couldn't identify this plant. Try taking a clearer picture.",
+            title: "Not identified",
+            description: "We couldn't identify this. Try taking a clearer picture.",
             variant: "destructive",
           });
         } else {
@@ -156,17 +163,22 @@ const PlantIdentifier = () => {
             diagnosis: plantData.diagnosis,
             cure: plantData.cure,
             hasRottenLeaves: plantData.hasRottenLeaves || false,
+            isEdible: plantData.isEdible || false,
+            toxicity: plantData.toxicity || 'Unknown',
+            edibleParts: plantData.edibleParts || 'None',
+            warningSymptoms: plantData.warningSymptoms,
+            isFungus: plantData.isFungus || false,
           });
           
           toast({
-            title: "Plant identified",
-            description: `This appears to be a ${plantData.name || 'plant'}.`,
+            title: "Identification complete",
+            description: `This appears to be ${plantData.name || 'a plant'}.`,
           });
           
-          if (plantData.hasRottenLeaves) {
+          if (plantData.toxicity === 'severe' || plantData.toxicity === 'moderate') {
             toast({
-              title: "Issue detected",
-              description: "This plant has signs of disease or damage.",
+              title: "⚠️ Warning: Potentially Harmful",
+              description: "This may be toxic or harmful. Do not consume or handle without proper knowledge.",
               variant: "destructive",
             });
           }
@@ -181,11 +193,13 @@ const PlantIdentifier = () => {
           waterNeeds: 'Unknown',
           sunlight: 'Unknown',
           temperature: 'Unknown',
+          isEdible: false,
+          toxicity: 'Unknown',
         });
         
         toast({
-          title: "Plant not identified",
-          description: "We couldn't identify this plant. Try taking a clearer picture.",
+          title: "Identification failed",
+          description: "We couldn't identify this. Try taking a clearer picture.",
           variant: "destructive",
         });
       }
@@ -193,7 +207,7 @@ const PlantIdentifier = () => {
       console.error("Error identifying plant:", error);
       toast({
         title: "Identification failed",
-        description: "Unable to identify the plant. Please try again.",
+        description: "Unable to identify. Please try again.",
         variant: "destructive",
       });
       
@@ -203,6 +217,8 @@ const PlantIdentifier = () => {
         waterNeeds: 'Unknown',
         sunlight: 'Unknown',
         temperature: 'Unknown',
+        isEdible: false,
+        toxicity: 'Unknown',
       });
     } finally {
       setIsLoading(false);
@@ -225,8 +241,8 @@ const PlantIdentifier = () => {
               <Moon className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-gray-400'}`} />
             </div>
           </div>
-          <h1 className={`text-2xl font-light ${darkMode ? 'text-gray-100' : 'text-leaf-900'}`}>discover your plants</h1>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-leaf-600'}`}>take a photo or upload an image to identify your plant</p>
+          <h1 className={`text-2xl font-light ${darkMode ? 'text-gray-100' : 'text-leaf-900'}`}>identify plants & fungi</h1>
+          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-leaf-600'}`}>discover if berries, fruits, and fungi are safe to consume</p>
         </div>
 
         {showCamera ? (
@@ -242,7 +258,7 @@ const PlantIdentifier = () => {
                   <AspectRatio ratio={16/9} className="relative w-full rounded-lg overflow-hidden">
                     <img
                       src={selectedImage}
-                      alt="Selected plant"
+                      alt="Selected plant or fungus"
                       className="w-full h-full object-cover"
                     />
                   </AspectRatio>
@@ -277,7 +293,7 @@ const PlantIdentifier = () => {
                 disabled={isLoading || !selectedImage}
                 className={`w-full ${darkMode ? 'bg-leaf-600 hover:bg-leaf-700' : 'bg-leaf-500 hover:bg-leaf-600'} text-white transition-colors`}
               >
-                {isLoading ? "identifying..." : "identify plant"}
+                {isLoading ? "identifying..." : "identify"}
               </Button>
 
               <input
