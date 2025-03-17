@@ -1,8 +1,8 @@
+
 import React from 'react';
-import { Heart, Droplet, Sun, ThermometerSun, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
+import { Heart, Droplet, Sun, ThermometerSun } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 
 interface PlantInfo {
   name: string;
@@ -13,11 +13,6 @@ interface PlantInfo {
   diagnosis?: string;
   cure?: string;
   hasRottenLeaves?: boolean;
-  isEdible?: boolean;
-  toxicity?: string;
-  edibleParts?: string;
-  warningSymptoms?: string;
-  isFungus?: boolean;
 }
 
 interface PlantInfoCardProps {
@@ -73,42 +68,15 @@ const PlantInfoCard = ({ plantInfo, darkMode }: PlantInfoCardProps) => {
     return '🌡️';
   };
 
-  const getToxicityBadge = (toxicity: string | undefined) => {
-    if (!toxicity || toxicity === 'Unknown') return null;
-    
-    switch(toxicity.toLowerCase()) {
-      case 'none':
-        return <Badge className="bg-green-500">Safe</Badge>;
-      case 'mild':
-        return <Badge className="bg-yellow-500">Mild Toxicity</Badge>;
-      case 'moderate':
-        return <Badge className="bg-orange-500">Moderate Toxicity</Badge>;
-      case 'severe':
-        return <Badge className="bg-red-500">Severe Toxicity</Badge>;
-      default:
-        return <Badge className="bg-gray-500">{toxicity}</Badge>;
-    }
-  };
-
   const isUnknown = plantInfo.name === 'Unknown plant';
 
   return (
     <Card className={`p-6 ${darkMode ? 'bg-gray-800/90 border-gray-700' : 'backdrop-blur-sm bg-white/80 border-leaf-200'} shadow-lg animate-fade-in transition-colors duration-300`}>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className={`text-xl font-medium ${darkMode ? 'text-gray-100' : 'text-leaf-900'}`}>
-              {isUnknown ? "Unknown Plant 🌱" : plantInfo.name}
-            </h2>
-            <div className="flex gap-2 mt-1">
-              {plantInfo.isFungus && (
-                <Badge variant="outline" className={darkMode ? 'border-purple-400 text-purple-300' : 'border-purple-500 text-purple-700'}>
-                  Fungus
-                </Badge>
-              )}
-              {getToxicityBadge(plantInfo.toxicity)}
-            </div>
-          </div>
+          <h2 className={`text-xl font-medium ${darkMode ? 'text-gray-100' : 'text-leaf-900'}`}>
+            {isUnknown ? "Unknown Plant 🌱" : plantInfo.name}
+          </h2>
           {!isUnknown && (
             <span className="text-2xl">
               {plantInfo.health >= 70 ? '🌿' : plantInfo.health >= 50 ? '🌱' : '🥀'}
@@ -119,7 +87,7 @@ const PlantInfoCard = ({ plantInfo, darkMode }: PlantInfoCardProps) => {
         <div className="space-y-3">
           {isUnknown ? (
             <div className={`text-sm italic ${darkMode ? 'text-gray-400' : 'text-leaf-600'}`}>
-              We couldn't identify this. Try taking a clearer picture or from a different angle.
+              We couldn't identify this plant. Try taking a clearer picture or from a different angle.
             </div>
           ) : (
             <>
@@ -133,27 +101,6 @@ const PlantInfoCard = ({ plantInfo, darkMode }: PlantInfoCardProps) => {
                 </div>
                 <Progress value={plantInfo.health} className={`h-2 ${darkMode ? 'bg-gray-700' : 'bg-leaf-100'}`} />
               </div>
-              
-              <div className={`flex items-center justify-between text-sm ${darkMode ? 'text-gray-300' : 'text-leaf-600'}`}>
-                {plantInfo.isEdible ? (
-                  <div className="flex items-center">
-                    <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />
-                    <span>edible</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center">
-                    <XCircle className="w-4 h-4 mr-2 text-red-500" />
-                    <span>not edible</span>
-                  </div>
-                )}
-              </div>
-              
-              {plantInfo.edibleParts && plantInfo.edibleParts !== 'None' && (
-                <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-leaf-600'}`}>
-                  <span className="font-medium">edible parts:</span> {plantInfo.edibleParts}
-                </div>
-              )}
-              
               <div className={`flex items-center text-sm ${darkMode ? 'text-gray-300' : 'text-leaf-600'}`}>
                 <Droplet className={`w-4 h-4 mr-2 ${darkMode ? 'text-leaf-400' : 'text-leaf-500'}`} />
                 <span>water needs: {plantInfo.waterNeeds} {getWaterEmoji(plantInfo.waterNeeds)}</span>
@@ -167,24 +114,10 @@ const PlantInfoCard = ({ plantInfo, darkMode }: PlantInfoCardProps) => {
                 <span>temperature: {plantInfo.temperature} {getTemperatureEmoji(plantInfo.temperature)}</span>
               </div>
               
-              {(plantInfo.toxicity && plantInfo.toxicity !== 'none' && plantInfo.toxicity !== 'Unknown') && (
-                <div className={`mt-4 p-3 ${darkMode ? 'bg-red-900/30 border-red-800' : 'bg-red-50 border-red-100'} rounded-md border`}>
-                  <h3 className={`font-medium flex items-center ${darkMode ? 'text-red-300' : 'text-red-700'} mb-1`}>
-                    <AlertTriangle className="w-4 h-4 mr-2" />
-                    Warning
-                  </h3>
-                  {plantInfo.warningSymptoms && (
-                    <p className={`text-sm ${darkMode ? 'text-red-200' : 'text-red-600'}`}>
-                      {plantInfo.warningSymptoms}
-                    </p>
-                  )}
-                </div>
-              )}
-              
               {(plantInfo.diagnosis || plantInfo.hasRottenLeaves) && (
-                <div className={`mt-4 p-3 ${darkMode ? 'bg-amber-900/30 border-amber-800' : 'bg-amber-50 border-amber-100'} rounded-md border`}>
-                  <h3 className={`font-medium ${darkMode ? 'text-amber-300' : 'text-amber-700'} mb-1`}>Diagnosis 🔍</h3>
-                  <p className={`text-sm ${darkMode ? 'text-amber-200' : 'text-amber-600'}`}>
+                <div className={`mt-4 p-3 ${darkMode ? 'bg-red-900/30 border-red-800' : 'bg-red-50 border-red-100'} rounded-md border`}>
+                  <h3 className={`font-medium ${darkMode ? 'text-red-300' : 'text-red-700'} mb-1`}>Diagnosis 🔍</h3>
+                  <p className={`text-sm ${darkMode ? 'text-red-200' : 'text-red-600'}`}>
                     {plantInfo.diagnosis || (plantInfo.hasRottenLeaves ? 'This plant has signs of rotten leaves' : '')}
                   </p>
                   
