@@ -38,7 +38,7 @@ shrubAI uses the following technologies:
 
 - **Frontend**: React with TypeScript
 - **UI Framework**: Tailwind CSS with shadcn/ui components
-- **AI Integration**: Google's Gemini 2.0 API for image analysis and identification
+- **AI Integration**: Google's Gemini Pro Vision API for image analysis and identification
 - **Styling**: Custom Tailwind themes with dark mode support
 
 ## How to Use
@@ -66,7 +66,7 @@ Toggle between light and dark modes by clicking the switch in the top-right corn
 
 ## API Usage
 
-shrubAI uses Google's Gemini 2.0 Pro API for identification. The application sends the image to the API and receives JSON data containing:
+shrubAI uses Google's Gemini Pro Vision API for identification. The application sends the image to the API and receives JSON data containing:
 
 - Plant/fungi name (common name)
 - Scientific name

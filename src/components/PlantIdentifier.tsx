@@ -85,8 +85,8 @@ const PlantIdentifier = () => {
     try {
       const base64Image = selectedImage.split(',')[1];
       
-      // Updated to use Gemini 2.0 with edibility and toxicity analysis
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro:generateContent?key=${apiKey}`, {
+      // Updated to use the correct Gemini model name (gemini-pro-vision instead of gemini-2.0-pro)
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
