@@ -22,6 +22,9 @@ interface PlantInfo {
   isEdible?: boolean;
   toxicity?: string;
   warning?: string;
+  category?: string;
+  harmfulTouch?: boolean;
+  touchWarning?: string;
 }
 
 const PlantIdentifier = () => {
@@ -78,7 +81,7 @@ const PlantIdentifier = () => {
             {
               parts: [
                 {
-                  text: "Identify this plant, berry, fruit or fungus from the image. Analyze its health condition. Indicate if it's edible or harmful/poisonous. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations), isEdible (boolean), toxicity (none, mild, moderate, severe), warning (symptoms or harm if consumed or touched). If you cannot identify the plant, set name to null. No explanations, just the JSON."
+                  text: "Identify this plant, berry, fruit, fungi, or leaf from the image. Analyze its health condition. Indicate if it's edible or harmful/poisonous. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, category (one of: plant, berry, fruit, fungi, leaf), health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations), isEdible (boolean), toxicity (none, mild, moderate, severe), warning (symptoms or harm if consumed), harmfulTouch (boolean - true if it can cause irritation or harm from touching, like poison ivy), touchWarning (description of potential touch-related hazards or irritation). If you cannot identify the specimen, set name to null. No explanations, just the JSON."
                 },
                 {
                   inline_data: {
@@ -121,23 +124,26 @@ const PlantIdentifier = () => {
         
         if (plantData.name === null) {
           setPlantInfo({
-            name: 'Unknown plant',
+            name: 'Unknown specimen',
             health: 0,
             waterNeeds: 'Unknown',
             sunlight: 'Unknown',
             temperature: 'Unknown',
             isEdible: false,
             toxicity: 'Unknown',
+            category: 'Unknown',
+            harmfulTouch: false,
           });
           
           toast({
-            title: "plant not identified",
-            description: "We couldn't identify this plant. Try taking a clearer picture.",
+            title: "item not identified",
+            description: "We couldn't identify this. Try taking a clearer picture.",
             variant: "destructive",
           });
         } else {
           setPlantInfo({
-            name: plantData.name || 'Unknown plant',
+            name: plantData.name || 'Unknown specimen',
+            category: plantData.category || 'plant',
             health: parseInt(plantData.health) || 70,
             waterNeeds: plantData.waterNeeds || 'Unknown',
             sunlight: plantData.sunlight || 'Unknown',
@@ -148,17 +154,19 @@ const PlantIdentifier = () => {
             isEdible: plantData.isEdible || false,
             toxicity: plantData.toxicity || 'Unknown',
             warning: plantData.warning,
+            harmfulTouch: plantData.harmfulTouch || false,
+            touchWarning: plantData.touchWarning,
           });
           
           toast({
-            title: "plant identified",
-            description: `This appears to be a ${plantData.name || 'plant'}.`,
+            title: `${plantData.category || 'item'} identified`,
+            description: `This appears to be a ${plantData.name || 'specimen'}.`,
           });
           
           if (plantData.hasRottenLeaves) {
             toast({
               title: "issue detected",
-              description: "This plant has signs of disease or damage.",
+              description: "This specimen has signs of disease or damage.",
               variant: "destructive",
             });
           }
@@ -166,7 +174,15 @@ const PlantIdentifier = () => {
           if (plantData.toxicity && plantData.toxicity !== 'none') {
             toast({
               title: "caution required",
-              description: `This plant has ${plantData.toxicity} toxicity.`,
+              description: `This has ${plantData.toxicity} toxicity.`,
+              variant: "destructive",
+            });
+          }
+
+          if (plantData.harmfulTouch) {
+            toast({
+              title: "harmful to touch",
+              description: plantData.touchWarning || "This may cause irritation if touched.",
               variant: "destructive",
             });
           }
@@ -176,18 +192,20 @@ const PlantIdentifier = () => {
         console.log("Raw text response:", textResponse);
         
         setPlantInfo({
-          name: 'Unknown plant',
+          name: 'Unknown specimen',
           health: 0,
           waterNeeds: 'Unknown',
           sunlight: 'Unknown',
           temperature: 'Unknown',
           isEdible: false,
           toxicity: 'Unknown',
+          category: 'Unknown',
+          harmfulTouch: false,
         });
         
         toast({
-          title: "plant not identified",
-          description: "We couldn't identify this plant. Try taking a clearer picture.",
+          title: "item not identified",
+          description: "We couldn't identify this. Try taking a clearer picture.",
           variant: "destructive",
         });
       }
@@ -195,18 +213,20 @@ const PlantIdentifier = () => {
       console.error("Error identifying plant:", error);
       toast({
         title: "identification failed",
-        description: "unable to identify the plant. please try again.",
+        description: "unable to identify. please try again.",
         variant: "destructive",
       });
       
       setPlantInfo({
-        name: 'Unknown plant',
+        name: 'Unknown specimen',
         health: 0,
         waterNeeds: 'Unknown',
         sunlight: 'Unknown',
         temperature: 'Unknown',
         isEdible: false,
         toxicity: 'Unknown',
+        category: 'Unknown',
+        harmfulTouch: false,
       });
     } finally {
       setIsLoading(false);
@@ -219,8 +239,8 @@ const PlantIdentifier = () => {
       <div className="w-full max-w-md space-y-4">
         <div className="text-center space-y-2 animate-fade-in">
           <Badge variant="subtle" className="mb-2 bg-cream-100 dark:bg-gray-800 dark:text-cream-100">shrubAI</Badge>
-          <h1 className="text-2xl font-light text-leaf-900 dark:text-cream-100">discover your plants</h1>
-          <p className="text-sm text-leaf-600 dark:text-cream-200">take a photo or upload an image to identify your plant</p>
+          <h1 className="text-2xl font-light text-leaf-900 dark:text-cream-100">discover plants & fungi</h1>
+          <p className="text-sm text-leaf-600 dark:text-cream-200">identify plants, fruits, berries, fungi & check if they're safe</p>
         </div>
 
         {showCamera ? (
@@ -271,7 +291,7 @@ const PlantIdentifier = () => {
                 disabled={isLoading || !selectedImage}
                 className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700"
               >
-                {isLoading ? "identifying..." : "identify plant"}
+                {isLoading ? "identifying..." : "identify"}
               </Button>
 
               <input
