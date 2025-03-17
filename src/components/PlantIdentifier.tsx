@@ -1,14 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
-import { Camera, Upload, Sprout, Moon, Sun } from 'lucide-react';
+import React, { useState } from 'react';
+import { Camera, Upload, Sprout } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Switch } from '@/components/ui/switch';
 import CameraView from './CameraView';
 import PlantInfoCard from './PlantInfoCard';
+import PlantStoreLocator from './PlantStoreLocator';
 
 interface PlantInfo {
   name: string;
@@ -26,20 +26,9 @@ const PlantIdentifier = () => {
   const [plantInfo, setPlantInfo] = useState<PlantInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => {
-    // Initialize dark mode from localStorage or system preference
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
   const { toast } = useToast();
   
   const apiKey = 'AIzaSyDskk1srl5d4hsWDhSvzZSVi1vezIkgaf8';
-
-  useEffect(() => {
-    // Update theme when dark mode state changes
-    document.documentElement.classList.toggle('dark', darkMode);
-    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -61,15 +50,11 @@ const PlantIdentifier = () => {
     setShowCamera(false);
   };
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
   const identifyPlant = async () => {
     if (!selectedImage) {
       toast({
-        title: "No image selected",
-        description: "Please take or upload a photo of a plant first",
+        title: "no image selected",
+        description: "please take or upload a photo of a plant first",
         variant: "destructive",
       });
       return;
@@ -80,8 +65,7 @@ const PlantIdentifier = () => {
     try {
       const base64Image = selectedImage.split(',')[1];
       
-      // Updated to use Gemini 2.0
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-pro:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +126,7 @@ const PlantIdentifier = () => {
           });
           
           toast({
-            title: "Plant not identified",
+            title: "plant not identified",
             description: "We couldn't identify this plant. Try taking a clearer picture.",
             variant: "destructive",
           });
@@ -159,13 +143,13 @@ const PlantIdentifier = () => {
           });
           
           toast({
-            title: "Plant identified",
+            title: "plant identified",
             description: `This appears to be a ${plantData.name || 'plant'}.`,
           });
           
           if (plantData.hasRottenLeaves) {
             toast({
-              title: "Issue detected",
+              title: "issue detected",
               description: "This plant has signs of disease or damage.",
               variant: "destructive",
             });
@@ -184,7 +168,7 @@ const PlantIdentifier = () => {
         });
         
         toast({
-          title: "Plant not identified",
+          title: "plant not identified",
           description: "We couldn't identify this plant. Try taking a clearer picture.",
           variant: "destructive",
         });
@@ -192,8 +176,8 @@ const PlantIdentifier = () => {
     } catch (error) {
       console.error("Error identifying plant:", error);
       toast({
-        title: "Identification failed",
-        description: "Unable to identify the plant. Please try again.",
+        title: "identification failed",
+        description: "unable to identify the plant. please try again.",
         variant: "destructive",
       });
       
@@ -210,23 +194,12 @@ const PlantIdentifier = () => {
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-b from-cream-50 to-cream-100'} p-4 flex flex-col items-center transition-colors duration-300`}>
+    <div className="min-h-screen bg-gradient-to-b from-cream-50 to-cream-100 p-4 flex flex-col items-center">
       <div className="w-full max-w-md space-y-4">
         <div className="text-center space-y-2 animate-fade-in">
-          <div className="flex items-center justify-between mb-2">
-            <Badge variant="subtle" className={`${darkMode ? 'bg-gray-800 text-gray-100' : 'bg-cream-100'}`}>shrubAI</Badge>
-            <div className="flex items-center space-x-2">
-              <Sun className={`w-4 h-4 ${darkMode ? 'text-gray-500' : 'text-yellow-500'}`} />
-              <Switch 
-                checked={darkMode} 
-                onCheckedChange={toggleDarkMode} 
-                className={darkMode ? 'bg-gray-700' : ''}
-              />
-              <Moon className={`w-4 h-4 ${darkMode ? 'text-blue-400' : 'text-gray-400'}`} />
-            </div>
-          </div>
-          <h1 className={`text-2xl font-light ${darkMode ? 'text-gray-100' : 'text-leaf-900'}`}>discover your plants</h1>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-leaf-600'}`}>take a photo or upload an image to identify your plant</p>
+          <Badge variant="subtle" className="mb-2 bg-cream-100">shrubAI</Badge>
+          <h1 className="text-2xl font-light text-leaf-900">discover your plants</h1>
+          <p className="text-sm text-leaf-600">take a photo or upload an image to identify your plant</p>
         </div>
 
         {showCamera ? (
@@ -235,7 +208,7 @@ const PlantIdentifier = () => {
             onCancel={handleCameraCancel}
           />
         ) : (
-          <Card className={`p-6 ${darkMode ? 'bg-gray-800/90 border-gray-700' : 'backdrop-blur-sm bg-white/80 border-leaf-200'} shadow-lg animate-scale-in transition-colors duration-300`}>
+          <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-scale-in">
             <div className="space-y-4">
               <div className="flex justify-center">
                 {selectedImage ? (
@@ -247,8 +220,8 @@ const PlantIdentifier = () => {
                     />
                   </AspectRatio>
                 ) : (
-                  <AspectRatio ratio={16/9} className={`w-full rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-cream-50 border-leaf-200'} flex items-center justify-center border-2 border-dashed`}>
-                    <Sprout className={`w-12 h-12 ${darkMode ? 'text-gray-500' : 'text-leaf-400'}`} />
+                  <AspectRatio ratio={16/9} className="w-full rounded-lg bg-cream-50 flex items-center justify-center border-2 border-dashed border-leaf-200">
+                    <Sprout className="w-12 h-12 text-leaf-400" />
                   </AspectRatio>
                 )}
               </div>
@@ -256,7 +229,7 @@ const PlantIdentifier = () => {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  className={`flex-1 ${darkMode ? 'bg-gray-700/50 hover:bg-gray-700/80 text-gray-200 border-gray-600' : 'bg-white/50 hover:bg-white/80'} transition-all`}
+                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all"
                   onClick={() => setShowCamera(true)}
                 >
                   <Camera className="w-4 h-4 mr-2" />
@@ -264,7 +237,7 @@ const PlantIdentifier = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  className={`flex-1 ${darkMode ? 'bg-gray-700/50 hover:bg-gray-700/80 text-gray-200 border-gray-600' : 'bg-white/50 hover:bg-white/80'} transition-all`}
+                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all"
                   onClick={() => document.getElementById('upload')?.click()}
                 >
                   <Upload className="w-4 h-4 mr-2" />
@@ -275,7 +248,7 @@ const PlantIdentifier = () => {
               <Button 
                 onClick={identifyPlant}
                 disabled={isLoading || !selectedImage}
-                className={`w-full ${darkMode ? 'bg-leaf-600 hover:bg-leaf-700' : 'bg-leaf-500 hover:bg-leaf-600'} text-white transition-colors`}
+                className="w-full bg-leaf-500 hover:bg-leaf-600 text-white"
               >
                 {isLoading ? "identifying..." : "identify plant"}
               </Button>
@@ -291,8 +264,10 @@ const PlantIdentifier = () => {
           </Card>
         )}
 
-        {plantInfo && (
-          <PlantInfoCard plantInfo={plantInfo} darkMode={darkMode} />
+        {plantInfo && <PlantInfoCard plantInfo={plantInfo} />}
+        
+        {plantInfo && plantInfo.name !== 'Unknown plant' && (
+          <PlantStoreLocator plantName={plantInfo.name} />
         )}
       </div>
     </div>
