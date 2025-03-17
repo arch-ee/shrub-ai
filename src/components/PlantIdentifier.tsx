@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import CameraView from './CameraView';
 import PlantInfoCard from './PlantInfoCard';
-import PlantStoreLocator from './PlantStoreLocator';
+import ThemeToggle from './ThemeToggle';
 
 interface PlantInfo {
   name: string;
@@ -19,6 +19,9 @@ interface PlantInfo {
   diagnosis?: string;
   cure?: string;
   hasRottenLeaves?: boolean;
+  isEdible?: boolean;
+  toxicity?: string;
+  warning?: string;
 }
 
 const PlantIdentifier = () => {
@@ -75,7 +78,7 @@ const PlantIdentifier = () => {
             {
               parts: [
                 {
-                  text: "Identify this plant from the image. Analyze its health condition and check if it has any diseases or rotten leaves. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations). If you cannot identify the plant, set name to null. No explanations, just the JSON."
+                  text: "Identify this plant, berry, fruit or fungus from the image. Analyze its health condition. Indicate if it's edible or harmful/poisonous. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations), isEdible (boolean), toxicity (none, mild, moderate, severe), warning (symptoms or harm if consumed or touched). If you cannot identify the plant, set name to null. No explanations, just the JSON."
                 },
                 {
                   inline_data: {
@@ -123,6 +126,8 @@ const PlantIdentifier = () => {
             waterNeeds: 'Unknown',
             sunlight: 'Unknown',
             temperature: 'Unknown',
+            isEdible: false,
+            toxicity: 'Unknown',
           });
           
           toast({
@@ -140,6 +145,9 @@ const PlantIdentifier = () => {
             diagnosis: plantData.diagnosis,
             cure: plantData.cure,
             hasRottenLeaves: plantData.hasRottenLeaves || false,
+            isEdible: plantData.isEdible || false,
+            toxicity: plantData.toxicity || 'Unknown',
+            warning: plantData.warning,
           });
           
           toast({
@@ -154,6 +162,14 @@ const PlantIdentifier = () => {
               variant: "destructive",
             });
           }
+          
+          if (plantData.toxicity && plantData.toxicity !== 'none') {
+            toast({
+              title: "caution required",
+              description: `This plant has ${plantData.toxicity} toxicity.`,
+              variant: "destructive",
+            });
+          }
         }
       } catch (jsonError) {
         console.error("Error parsing JSON from response:", jsonError);
@@ -165,6 +181,8 @@ const PlantIdentifier = () => {
           waterNeeds: 'Unknown',
           sunlight: 'Unknown',
           temperature: 'Unknown',
+          isEdible: false,
+          toxicity: 'Unknown',
         });
         
         toast({
@@ -187,6 +205,8 @@ const PlantIdentifier = () => {
         waterNeeds: 'Unknown',
         sunlight: 'Unknown',
         temperature: 'Unknown',
+        isEdible: false,
+        toxicity: 'Unknown',
       });
     } finally {
       setIsLoading(false);
@@ -194,12 +214,13 @@ const PlantIdentifier = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-50 to-cream-100 p-4 flex flex-col items-center">
+    <div className="min-h-screen bg-gradient-to-b from-cream-50 to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center transition-colors duration-300">
+      <ThemeToggle />
       <div className="w-full max-w-md space-y-4">
         <div className="text-center space-y-2 animate-fade-in">
-          <Badge variant="subtle" className="mb-2 bg-cream-100">shrubAI</Badge>
-          <h1 className="text-2xl font-light text-leaf-900">discover your plants</h1>
-          <p className="text-sm text-leaf-600">take a photo or upload an image to identify your plant</p>
+          <Badge variant="subtle" className="mb-2 bg-cream-100 dark:bg-gray-800 dark:text-cream-100">shrubAI</Badge>
+          <h1 className="text-2xl font-light text-leaf-900 dark:text-cream-100">discover your plants</h1>
+          <p className="text-sm text-leaf-600 dark:text-cream-200">take a photo or upload an image to identify your plant</p>
         </div>
 
         {showCamera ? (
@@ -208,7 +229,7 @@ const PlantIdentifier = () => {
             onCancel={handleCameraCancel}
           />
         ) : (
-          <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-scale-in">
+          <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-scale-in dark:bg-gray-800/60 dark:border-gray-700 dark:shadow-gray-900/30">
             <div className="space-y-4">
               <div className="flex justify-center">
                 {selectedImage ? (
@@ -220,8 +241,8 @@ const PlantIdentifier = () => {
                     />
                   </AspectRatio>
                 ) : (
-                  <AspectRatio ratio={16/9} className="w-full rounded-lg bg-cream-50 flex items-center justify-center border-2 border-dashed border-leaf-200">
-                    <Sprout className="w-12 h-12 text-leaf-400" />
+                  <AspectRatio ratio={16/9} className="w-full rounded-lg bg-cream-50 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-leaf-200 dark:border-gray-600">
+                    <Sprout className="w-12 h-12 text-leaf-400 dark:text-leaf-300" />
                   </AspectRatio>
                 )}
               </div>
@@ -229,7 +250,7 @@ const PlantIdentifier = () => {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all"
+                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
                   onClick={() => setShowCamera(true)}
                 >
                   <Camera className="w-4 h-4 mr-2" />
@@ -237,7 +258,7 @@ const PlantIdentifier = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all"
+                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
                   onClick={() => document.getElementById('upload')?.click()}
                 >
                   <Upload className="w-4 h-4 mr-2" />
@@ -248,7 +269,7 @@ const PlantIdentifier = () => {
               <Button 
                 onClick={identifyPlant}
                 disabled={isLoading || !selectedImage}
-                className="w-full bg-leaf-500 hover:bg-leaf-600 text-white"
+                className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700"
               >
                 {isLoading ? "identifying..." : "identify plant"}
               </Button>
@@ -265,10 +286,6 @@ const PlantIdentifier = () => {
         )}
 
         {plantInfo && <PlantInfoCard plantInfo={plantInfo} />}
-        
-        {plantInfo && plantInfo.name !== 'Unknown plant' && (
-          <PlantStoreLocator plantName={plantInfo.name} />
-        )}
       </div>
     </div>
   );
