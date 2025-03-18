@@ -1,15 +1,18 @@
 
 import React, { useState } from 'react';
-import { Camera, Upload, Sprout } from 'lucide-react';
+import { Camera, Upload, Sprout, Mushroom, Apple } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { motion } from 'framer-motion';
 import CameraView from './CameraView';
 import PlantInfoCard from './PlantInfoCard';
 import PlantStoreLocator from './PlantStoreLocator';
 import ThemeToggle from './ThemeToggle';
+import SplashText from './SplashText';
 
 interface PlantInfo {
   name: string;
@@ -33,6 +36,7 @@ const PlantIdentifier = () => {
   const [plantInfo, setPlantInfo] = useState<PlantInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [activeTab, setActiveTab] = useState("plants");
   const { toast } = useToast();
   
   const apiKey = 'AIzaSyDskk1srl5d4hsWDhSvzZSVi1vezIkgaf8';
@@ -57,11 +61,47 @@ const PlantIdentifier = () => {
     setShowCamera(false);
   };
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+
+  const getPromptForCategory = () => {
+    const basePrompt = "Identify this specimen from the image. Analyze its health condition. ";
+    
+    switch (activeTab) {
+      case "plants":
+        return basePrompt + "Focus on identifying plants, leaves, and houseplants. Indicate if it's harmful/poisonous. You MUST respond with ONLY a valid JSON object.";
+      case "fungi":
+        return basePrompt + "Focus on identifying fungi and mushrooms. Indicate if it's edible or poisonous. Include a strong warning about mushroom identification risks. You MUST respond with ONLY a valid JSON object.";
+      case "fruit":
+        return basePrompt + "Focus on identifying fruits and berries. Indicate if it's edible or poisonous. You MUST respond with ONLY a valid JSON object.";
+      case "edible":
+        return basePrompt + "Focus on identifying edible plants and herbs. Assess if this is safe to consume and any preparation notes. You MUST respond with ONLY a valid JSON object.";
+      default:
+        return basePrompt + "You MUST respond with ONLY a valid JSON object.";
+    }
+  };
+
+  const getTabIconAndTitle = () => {
+    switch (activeTab) {
+      case "plants":
+        return { icon: <Sprout className="w-4 h-4 mr-2" />, title: "plants" };
+      case "fungi":
+        return { icon: <Mushroom className="w-4 h-4 mr-2" />, title: "fungi" };
+      case "fruit":
+        return { icon: <Apple className="w-4 h-4 mr-2" />, title: "fruits & berries" };
+      case "edible":
+        return { icon: <Sprout className="w-4 h-4 mr-2" />, title: "edible plants" };
+      default:
+        return { icon: <Sprout className="w-4 h-4 mr-2" />, title: "identify" };
+    }
+  };
+
   const identifyPlant = async () => {
     if (!selectedImage) {
       toast({
         title: "no image selected",
-        description: "please take or upload a photo of a plant first",
+        description: "please take or upload a photo first",
         variant: "destructive",
       });
       return;
@@ -71,6 +111,7 @@ const PlantIdentifier = () => {
     
     try {
       const base64Image = selectedImage.split(',')[1];
+      const promptText = getPromptForCategory();
       
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
@@ -242,82 +283,151 @@ const PlantIdentifier = () => {
     }
   };
 
+  const { icon, title } = getTabIconAndTitle();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream-50 to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center transition-colors duration-300">
       <ThemeToggle />
       <div className="w-full max-w-md space-y-4">
-        <div className="text-center space-y-2 animate-fade-in">
+        <motion.div 
+          className="text-center space-y-2"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        >
           <Badge variant="subtle" className="mb-2 bg-cream-100 dark:bg-gray-800 dark:text-cream-100">shrubAI</Badge>
-          <h1 className="text-2xl font-light text-leaf-900 dark:text-cream-100">discover plants & fungi</h1>
-          <p className="text-sm text-leaf-600 dark:text-cream-200">identify plants, fruits, berries, fungi & check if they're safe</p>
-        </div>
+          <SplashText />
+        </motion.div>
 
-        {showCamera ? (
-          <CameraView
-            onCapture={handleCameraCapture}
-            onCancel={handleCameraCancel}
-          />
-        ) : (
-          <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-scale-in dark:bg-gray-800/60 dark:border-gray-700 dark:shadow-gray-900/30">
-            <div className="space-y-4">
-              <div className="flex justify-center">
-                {selectedImage ? (
-                  <AspectRatio ratio={16/9} className="relative w-full rounded-lg overflow-hidden">
-                    <img
-                      src={selectedImage}
-                      alt="Selected plant"
-                      className="w-full h-full object-cover"
-                    />
-                  </AspectRatio>
-                ) : (
-                  <AspectRatio ratio={16/9} className="w-full rounded-lg bg-cream-50 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-leaf-200 dark:border-gray-600">
-                    <Sprout className="w-12 h-12 text-leaf-400 dark:text-leaf-300" />
-                  </AspectRatio>
-                )}
-              </div>
+        <Tabs 
+          defaultValue="plants" 
+          value={activeTab} 
+          onValueChange={handleTabChange}
+          className="w-full"
+        >
+          <TabsList className="grid grid-cols-4 mb-4 bg-cream-100 dark:bg-gray-800">
+            <TabsTrigger value="plants" className="data-[state=active]:bg-leaf-100 dark:data-[state=active]:bg-leaf-900/30">
+              <Sprout className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">Plants</span>
+            </TabsTrigger>
+            <TabsTrigger value="fungi" className="data-[state=active]:bg-leaf-100 dark:data-[state=active]:bg-leaf-900/30">
+              <Mushroom className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">Fungi</span>
+            </TabsTrigger>
+            <TabsTrigger value="fruit" className="data-[state=active]:bg-leaf-100 dark:data-[state=active]:bg-leaf-900/30">
+              <Apple className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">Fruits</span>
+            </TabsTrigger>
+            <TabsTrigger value="edible" className="data-[state=active]:bg-leaf-100 dark:data-[state=active]:bg-leaf-900/30">
+              <span className="text-sm mr-1">🌿</span>
+              <span className="hidden sm:inline">Edible</span>
+            </TabsTrigger>
+          </TabsList>
 
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
-                  onClick={() => setShowCamera(true)}
-                >
-                  <Camera className="w-4 h-4 mr-2" />
-                  camera
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
-                  onClick={() => document.getElementById('upload')?.click()}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  upload
-                </Button>
-              </div>
-
-              <Button 
-                onClick={identifyPlant}
-                disabled={isLoading || !selectedImage}
-                className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700"
+          <TabsContent value={activeTab} className="mt-0">
+            {showCamera ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
               >
-                {isLoading ? "identifying..." : "identify"}
-              </Button>
+                <CameraView
+                  onCapture={handleCameraCapture}
+                  onCancel={handleCameraCancel}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg dark:bg-gray-800/60 dark:border-gray-700 dark:shadow-gray-900/30">
+                  <div className="space-y-4">
+                    <div className="flex justify-center">
+                      {selectedImage ? (
+                        <motion.div 
+                          className="w-full"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <AspectRatio ratio={16/9} className="relative w-full rounded-lg overflow-hidden">
+                            <img
+                              src={selectedImage}
+                              alt="Selected plant"
+                              className="w-full h-full object-cover"
+                            />
+                          </AspectRatio>
+                        </motion.div>
+                      ) : (
+                        <AspectRatio ratio={16/9} className="w-full rounded-lg bg-cream-50 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-leaf-200 dark:border-gray-600">
+                          {icon}
+                          <span className="text-leaf-400 dark:text-leaf-300 ml-2">{title}</span>
+                        </AspectRatio>
+                      )}
+                    </div>
 
-              <input
-                type="file"
-                id="upload"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </div>
-          </Card>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
+                        onClick={() => setShowCamera(true)}
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        camera
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
+                        onClick={() => document.getElementById('upload')?.click()}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        upload
+                      </Button>
+                    </div>
+
+                    <Button 
+                      onClick={identifyPlant}
+                      disabled={isLoading || !selectedImage}
+                      className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700"
+                    >
+                      {isLoading ? "identifying..." : `identify ${title}`}
+                    </Button>
+
+                    <input
+                      type="file"
+                      id="upload"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </div>
+                </Card>
+              </motion.div>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        {plantInfo && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.1 }}
+          >
+            <PlantInfoCard plantInfo={plantInfo} />
+          </motion.div>
         )}
-
-        {plantInfo && <PlantInfoCard plantInfo={plantInfo} />}
         
         {plantInfo && plantInfo.name && plantInfo.name !== 'Unknown specimen' && (
-          <PlantStoreLocator plantName={plantInfo.name} />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.2 }}
+          >
+            <PlantStoreLocator plantName={plantInfo.name} />
+          </motion.div>
         )}
       </div>
     </div>

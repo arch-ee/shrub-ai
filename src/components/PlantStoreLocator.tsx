@@ -2,110 +2,82 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Store } from 'lucide-react';
-import { NearbyStore, OnlineStore } from './store-locator/types';
-import NearbyStores from './store-locator/NearbyStores';
+import { OnlineStore } from './store-locator/types';
 import OnlineStores from './store-locator/OnlineStores';
-import LocationFinder from './store-locator/LocationFinder';
 
 interface PlantStoreLocatorProps {
   plantName: string;
 }
 
 const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
-  const [nearbyStores, setNearbyStores] = useState<NearbyStore[]>([]);
   const [onlineStores, setOnlineStores] = useState<OnlineStore[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get user's location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        },
-        (locationError) => {
-          console.error("Geolocation error:", locationError);
-          setError("Unable to retrieve your location. Please enable location services.");
-          toast({
-            title: "Location error",
-            description: "Unable to retrieve your location. Please enable location services in your browser.",
-            variant: "destructive",
-          });
-        }
-      );
-    } else {
-      setError("Geolocation is not supported by your browser.");
-      toast({
-        title: "Browser not supported",
-        description: "Geolocation is not supported by your browser.",
-        variant: "destructive",
-      });
+    // Find online stores when we have plant name
+    if (plantName && plantName !== 'Unknown plant') {
+      findOnlineStores();
     }
-  }, [toast]);
+  }, [plantName]);
 
-  useEffect(() => {
-    // Find stores when we have both the user location and plant name
-    if (userLocation && plantName && plantName !== 'Unknown plant') {
-      findStores();
-    }
-  }, [userLocation, plantName]);
-
-  const findStores = async () => {
-    if (!userLocation) return;
-    
+  const findOnlineStores = async () => {
     setIsLoading(true);
     setError(null);
-    setHasSearched(true);
     
     try {
-      console.log("Calling find-plant-stores function with:", {
-        plantName,
-        lat: userLocation.lat,
-        lng: userLocation.lng
-      });
+      console.log("Finding online stores for:", plantName);
       
-      // Call Supabase Edge Function to find nearby stores
-      const { data, error: functionError } = await supabase.functions.invoke('find-plant-stores', {
-        body: {
-          lat: userLocation.lat,
-          lng: userLocation.lng,
-          plantName: plantName
+      // Generate online store links with search terms
+      const onlineStoreData = [
+        {
+          name: "Amazon",
+          url: `https://www.amazon.com/s?k=${encodeURIComponent(`${plantName} plant live`)}`,
+          price: "Varies",
+          description: `Find ${plantName} plants with fast shipping options.`,
+          logo: "amazon"
+        },
+        {
+          name: "Etsy",
+          url: `https://www.etsy.com/search?q=${encodeURIComponent(`${plantName} plant`)}`,
+          price: "Varies",
+          description: `Handpicked ${plantName} from independent growers and nurseries.`,
+          logo: "etsy"
+        },
+        {
+          name: "Home Depot",
+          url: `https://www.homedepot.com/s/${encodeURIComponent(`${plantName} plant`)}`,
+          price: "$15-45",
+          description: "Find plants online with in-store pickup options at your local Home Depot.",
+          logo: "homedepot"
+        },
+        {
+          name: "Walmart",
+          url: `https://www.walmart.com/search?q=${encodeURIComponent(`${plantName} plant`)}`,
+          price: "$10-30",
+          description: "Affordable plants with delivery or pickup options.",
+          logo: "walmart"
+        },
+        {
+          name: "Lowe's",
+          url: `https://www.lowes.com/search?searchTerm=${encodeURIComponent(`${plantName} plant`)}`,
+          price: "$15-40",
+          description: "Garden center with a variety of plant options and gardening supplies.",
+          logo: "lowes"
         }
-      });
+      ];
       
-      if (functionError) {
-        console.error('Error from edge function:', functionError);
-        throw new Error(functionError.message);
-      }
-      
-      console.log("Edge function response:", data);
-      
-      if (data) {
-        if (data.nearbyStores) {
-          setNearbyStores(data.nearbyStores);
-        }
-        
-        if (data.onlineStores) {
-          setOnlineStores(data.onlineStores);
-        }
-      }
+      setOnlineStores(onlineStoreData);
     } catch (err) {
       console.error('Error finding stores:', err);
-      setError('Failed to find plant stores. Please try again later.');
+      setError('Failed to find online stores. Please try again later.');
       toast({
         title: "Store lookup failed",
-        description: "We couldn't find plant stores near you. Please try again later.",
+        description: "We couldn't find online stores for this item. Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -117,40 +89,24 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
     return null;
   }
 
-  const noStoresMessage = (
-    <>
-      <p className="mb-2">No plant stores found nearby carrying {plantName}.</p>
-      <p className="text-sm">Try checking online options below or visit general garden centers like Home Depot, Lowe's, or local nurseries.</p>
-    </>
-  );
-
   return (
-    <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-fade-in">
+    <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-fade-in dark:bg-gray-800/60 dark:border-gray-700 dark:text-cream-50">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-medium text-leaf-900">Where to Find {plantName}</h2>
-          <Badge variant="subtle" className="bg-cream-100 text-leaf-700">
-            {isLoading ? 'Searching...' : 'Results'}
+          <h2 className="text-xl font-medium text-leaf-900 dark:text-cream-100">Where to Find {plantName}</h2>
+          <Badge variant="subtle" className="bg-cream-100 text-leaf-700 dark:bg-gray-700 dark:text-cream-100">
+            {isLoading ? 'Searching...' : 'Online'}
           </Badge>
         </div>
 
         {error && (
-          <div className="text-sm text-red-500 p-3 bg-red-50 rounded-md">
+          <div className="text-sm text-red-500 p-3 bg-red-50 rounded-md dark:bg-red-900/20 dark:text-red-300">
             {error}
           </div>
         )}
 
-        {!hasSearched && !isLoading && (
-          <LocationFinder 
-            plantName={plantName}
-            userLocation={userLocation}
-            isLoading={isLoading}
-            onFind={findStores}
-          />
-        )}
-
         {isLoading && (
-          <div className="py-8 text-center text-leaf-600">
+          <div className="py-8 text-center text-leaf-600 dark:text-leaf-400">
             <div className="animate-pulse flex flex-col items-center">
               <Store className="h-8 w-8 mb-2" />
               <p>Finding places to buy {plantName}...</p>
@@ -158,17 +114,8 @@ const PlantStoreLocator = ({ plantName }: PlantStoreLocatorProps) => {
           </div>
         )}
 
-        {hasSearched && !isLoading && (
+        {!isLoading && (
           <div className="space-y-6">
-            <NearbyStores 
-              stores={nearbyStores} 
-              noStoresMessage={noStoresMessage}
-            />
-
-            {nearbyStores.length > 0 && onlineStores.length > 0 && (
-              <Separator className="my-4" />
-            )}
-
             <OnlineStores stores={onlineStores} />
           </div>
         )}
