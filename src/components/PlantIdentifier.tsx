@@ -1,18 +1,14 @@
 
 import React, { useState } from 'react';
-import { Camera, Upload, Sprout, Apple, Leaf } from 'lucide-react';
+import { Camera, Upload, Sprout } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { motion } from 'framer-motion';
 import CameraView from './CameraView';
 import PlantInfoCard from './PlantInfoCard';
-import PlantStoreLocator from './PlantStoreLocator';
 import ThemeToggle from './ThemeToggle';
-import SplashText from './SplashText';
 
 interface PlantInfo {
   name: string;
@@ -26,9 +22,6 @@ interface PlantInfo {
   isEdible?: boolean;
   toxicity?: string;
   warning?: string;
-  category?: string;
-  harmfulTouch?: boolean;
-  touchWarning?: string;
 }
 
 const PlantIdentifier = () => {
@@ -36,7 +29,6 @@ const PlantIdentifier = () => {
   const [plantInfo, setPlantInfo] = useState<PlantInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
-  const [activeTab, setActiveTab] = useState("plants");
   const { toast } = useToast();
   
   const apiKey = 'AIzaSyDskk1srl5d4hsWDhSvzZSVi1vezIkgaf8';
@@ -61,47 +53,11 @@ const PlantIdentifier = () => {
     setShowCamera(false);
   };
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-  };
-
-  const getPromptForCategory = () => {
-    const basePrompt = "Identify this specimen from the image. Analyze its health condition. ";
-    
-    switch (activeTab) {
-      case "plants":
-        return basePrompt + "Focus on identifying plants, leaves, and houseplants. Indicate if it's harmful/poisonous. You MUST respond with ONLY a valid JSON object.";
-      case "fungi":
-        return basePrompt + "Focus on identifying fungi and mushrooms. Indicate if it's edible or poisonous. Include a strong warning about mushroom identification risks. You MUST respond with ONLY a valid JSON object.";
-      case "fruit":
-        return basePrompt + "Focus on identifying fruits and berries. Indicate if it's edible or poisonous. You MUST respond with ONLY a valid JSON object.";
-      case "edible":
-        return basePrompt + "Focus on identifying edible plants and herbs. Assess if this is safe to consume and any preparation notes. You MUST respond with ONLY a valid JSON object.";
-      default:
-        return basePrompt + "You MUST respond with ONLY a valid JSON object.";
-    }
-  };
-
-  const getTabIconAndTitle = () => {
-    switch (activeTab) {
-      case "plants":
-        return { icon: <Sprout className="w-4 h-4 mr-2" />, title: "plants" };
-      case "fungi":
-        return { icon: <Leaf className="w-4 h-4 mr-2" />, title: "fungi" };
-      case "fruit":
-        return { icon: <Apple className="w-4 h-4 mr-2" />, title: "fruits & berries" };
-      case "edible":
-        return { icon: <Sprout className="w-4 h-4 mr-2" />, title: "edible plants" };
-      default:
-        return { icon: <Sprout className="w-4 h-4 mr-2" />, title: "identify" };
-    }
-  };
-
   const identifyPlant = async () => {
     if (!selectedImage) {
       toast({
         title: "no image selected",
-        description: "please take or upload a photo first",
+        description: "please take or upload a photo of a plant first",
         variant: "destructive",
       });
       return;
@@ -111,7 +67,6 @@ const PlantIdentifier = () => {
     
     try {
       const base64Image = selectedImage.split(',')[1];
-      const promptText = getPromptForCategory();
       
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
@@ -123,7 +78,7 @@ const PlantIdentifier = () => {
             {
               parts: [
                 {
-                  text: "Identify this plant, berry, fruit, fungi, or leaf from the image. Analyze its health condition. Indicate if it's edible or harmful/poisonous. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, category (one of: plant, berry, fruit, fungi, leaf), health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations), isEdible (boolean), toxicity (none, mild, moderate, severe), warning (symptoms or harm if consumed), harmfulTouch (boolean - true if it can cause irritation or harm from touching, like poison ivy), touchWarning (description of potential touch-related hazards or irritation). If you cannot identify the specimen, set name to null. No explanations, just the JSON."
+                  text: "Identify this plant, berry, fruit or fungus from the image. Analyze its health condition. Indicate if it's edible or harmful/poisonous. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations), isEdible (boolean), toxicity (none, mild, moderate, severe), warning (symptoms or harm if consumed or touched). If you cannot identify the plant, set name to null. No explanations, just the JSON."
                 },
                 {
                   inline_data: {
@@ -166,26 +121,23 @@ const PlantIdentifier = () => {
         
         if (plantData.name === null) {
           setPlantInfo({
-            name: 'Unknown specimen',
+            name: 'Unknown plant',
             health: 0,
             waterNeeds: 'Unknown',
             sunlight: 'Unknown',
             temperature: 'Unknown',
             isEdible: false,
             toxicity: 'Unknown',
-            category: 'Unknown',
-            harmfulTouch: false,
           });
           
           toast({
-            title: "item not identified",
-            description: "We couldn't identify this. Try taking a clearer picture.",
+            title: "plant not identified",
+            description: "We couldn't identify this plant. Try taking a clearer picture.",
             variant: "destructive",
           });
         } else {
           setPlantInfo({
-            name: plantData.name || 'Unknown specimen',
-            category: plantData.category || 'plant',
+            name: plantData.name || 'Unknown plant',
             health: parseInt(plantData.health) || 70,
             waterNeeds: plantData.waterNeeds || 'Unknown',
             sunlight: plantData.sunlight || 'Unknown',
@@ -196,19 +148,17 @@ const PlantIdentifier = () => {
             isEdible: plantData.isEdible || false,
             toxicity: plantData.toxicity || 'Unknown',
             warning: plantData.warning,
-            harmfulTouch: plantData.harmfulTouch || false,
-            touchWarning: plantData.touchWarning,
           });
           
           toast({
-            title: `${plantData.category || 'item'} identified`,
-            description: `This appears to be a ${plantData.name || 'specimen'}.`,
+            title: "plant identified",
+            description: `This appears to be a ${plantData.name || 'plant'}.`,
           });
           
           if (plantData.hasRottenLeaves) {
             toast({
               title: "issue detected",
-              description: "This specimen has signs of disease or damage.",
+              description: "This plant has signs of disease or damage.",
               variant: "destructive",
             });
           }
@@ -216,23 +166,7 @@ const PlantIdentifier = () => {
           if (plantData.toxicity && plantData.toxicity !== 'none') {
             toast({
               title: "caution required",
-              description: `This has ${plantData.toxicity} toxicity.`,
-              variant: "destructive",
-            });
-          }
-
-          if (plantData.harmfulTouch) {
-            toast({
-              title: "harmful to touch",
-              description: plantData.touchWarning || "This may cause irritation if touched.",
-              variant: "destructive",
-            });
-          }
-          
-          if (plantData.category?.toLowerCase() === 'fungi' || plantData.category?.toLowerCase() === 'mushroom') {
-            toast({
-              title: "fungi warning",
-              description: "Visual identification of fungi can be extremely unreliable. Never consume wild mushrooms without expert confirmation.",
+              description: `This plant has ${plantData.toxicity} toxicity.`,
               variant: "destructive",
             });
           }
@@ -242,20 +176,18 @@ const PlantIdentifier = () => {
         console.log("Raw text response:", textResponse);
         
         setPlantInfo({
-          name: 'Unknown specimen',
+          name: 'Unknown plant',
           health: 0,
           waterNeeds: 'Unknown',
           sunlight: 'Unknown',
           temperature: 'Unknown',
           isEdible: false,
           toxicity: 'Unknown',
-          category: 'Unknown',
-          harmfulTouch: false,
         });
         
         toast({
-          title: "item not identified",
-          description: "We couldn't identify this. Try taking a clearer picture.",
+          title: "plant not identified",
+          description: "We couldn't identify this plant. Try taking a clearer picture.",
           variant: "destructive",
         });
       }
@@ -263,172 +195,97 @@ const PlantIdentifier = () => {
       console.error("Error identifying plant:", error);
       toast({
         title: "identification failed",
-        description: "unable to identify. please try again.",
+        description: "unable to identify the plant. please try again.",
         variant: "destructive",
       });
       
       setPlantInfo({
-        name: 'Unknown specimen',
+        name: 'Unknown plant',
         health: 0,
         waterNeeds: 'Unknown',
         sunlight: 'Unknown',
         temperature: 'Unknown',
         isEdible: false,
         toxicity: 'Unknown',
-        category: 'Unknown',
-        harmfulTouch: false,
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const { icon, title } = getTabIconAndTitle();
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream-50 to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center transition-colors duration-300">
       <ThemeToggle />
       <div className="w-full max-w-md space-y-4">
-        <motion.div 
-          className="text-center space-y-2"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        >
+        <div className="text-center space-y-2 animate-fade-in">
           <Badge variant="subtle" className="mb-2 bg-cream-100 dark:bg-gray-800 dark:text-cream-100">shrubAI</Badge>
-          <SplashText />
-        </motion.div>
+          <h1 className="text-2xl font-light text-leaf-900 dark:text-cream-100">discover your plants</h1>
+          <p className="text-sm text-leaf-600 dark:text-cream-200">take a photo or upload an image to identify your plant</p>
+        </div>
 
-        <Tabs 
-          defaultValue="plants" 
-          value={activeTab} 
-          onValueChange={handleTabChange}
-          className="w-full"
-        >
-          <TabsList className="grid grid-cols-4 mb-4 bg-cream-100 dark:bg-gray-800">
-            <TabsTrigger value="plants" className="data-[state=active]:bg-leaf-100 dark:data-[state=active]:bg-leaf-900/30">
-              <Sprout className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">Plants</span>
-            </TabsTrigger>
-            <TabsTrigger value="fungi" className="data-[state=active]:bg-leaf-100 dark:data-[state=active]:bg-leaf-900/30">
-              <Leaf className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">Fungi</span>
-            </TabsTrigger>
-            <TabsTrigger value="fruit" className="data-[state=active]:bg-leaf-100 dark:data-[state=active]:bg-leaf-900/30">
-              <Apple className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">Fruits</span>
-            </TabsTrigger>
-            <TabsTrigger value="edible" className="data-[state=active]:bg-leaf-100 dark:data-[state=active]:bg-leaf-900/30">
-              <span className="text-sm mr-1">🌿</span>
-              <span className="hidden sm:inline">Edible</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value={activeTab} className="mt-0">
-            {showCamera ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              >
-                <CameraView
-                  onCapture={handleCameraCapture}
-                  onCancel={handleCameraCancel}
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg dark:bg-gray-800/60 dark:border-gray-700 dark:shadow-gray-900/30">
-                  <div className="space-y-4">
-                    <div className="flex justify-center">
-                      {selectedImage ? (
-                        <motion.div 
-                          className="w-full"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <AspectRatio ratio={16/9} className="relative w-full rounded-lg overflow-hidden">
-                            <img
-                              src={selectedImage}
-                              alt="Selected plant"
-                              className="w-full h-full object-cover"
-                            />
-                          </AspectRatio>
-                        </motion.div>
-                      ) : (
-                        <AspectRatio ratio={16/9} className="w-full rounded-lg bg-cream-50 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-leaf-200 dark:border-gray-600">
-                          {icon}
-                          <span className="text-leaf-400 dark:text-leaf-300 ml-2">{title}</span>
-                        </AspectRatio>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
-                        onClick={() => setShowCamera(true)}
-                      >
-                        <Camera className="w-4 h-4 mr-2" />
-                        camera
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
-                        onClick={() => document.getElementById('upload')?.click()}
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        upload
-                      </Button>
-                    </div>
-
-                    <Button 
-                      onClick={identifyPlant}
-                      disabled={isLoading || !selectedImage}
-                      className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700"
-                    >
-                      {isLoading ? "identifying..." : `identify ${title}`}
-                    </Button>
-
-                    <input
-                      type="file"
-                      id="upload"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
+        {showCamera ? (
+          <CameraView
+            onCapture={handleCameraCapture}
+            onCancel={handleCameraCancel}
+          />
+        ) : (
+          <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-scale-in dark:bg-gray-800/60 dark:border-gray-700 dark:shadow-gray-900/30">
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                {selectedImage ? (
+                  <AspectRatio ratio={16/9} className="relative w-full rounded-lg overflow-hidden">
+                    <img
+                      src={selectedImage}
+                      alt="Selected plant"
+                      className="w-full h-full object-cover"
                     />
-                  </div>
-                </Card>
-              </motion.div>
-            )}
-          </TabsContent>
-        </Tabs>
+                  </AspectRatio>
+                ) : (
+                  <AspectRatio ratio={16/9} className="w-full rounded-lg bg-cream-50 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-leaf-200 dark:border-gray-600">
+                    <Sprout className="w-12 h-12 text-leaf-400 dark:text-leaf-300" />
+                  </AspectRatio>
+                )}
+              </div>
 
-        {plantInfo && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.1 }}
-          >
-            <PlantInfoCard plantInfo={plantInfo} />
-          </motion.div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
+                  onClick={() => setShowCamera(true)}
+                >
+                  <Camera className="w-4 h-4 mr-2" />
+                  camera
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
+                  onClick={() => document.getElementById('upload')?.click()}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  upload
+                </Button>
+              </div>
+
+              <Button 
+                onClick={identifyPlant}
+                disabled={isLoading || !selectedImage}
+                className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700"
+              >
+                {isLoading ? "identifying..." : "identify plant"}
+              </Button>
+
+              <input
+                type="file"
+                id="upload"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+            </div>
+          </Card>
         )}
-        
-        {plantInfo && plantInfo.name && plantInfo.name !== 'Unknown specimen' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.2 }}
-          >
-            <PlantStoreLocator plantName={plantInfo.name} />
-          </motion.div>
-        )}
+
+        {plantInfo && <PlantInfoCard plantInfo={plantInfo} />}
       </div>
     </div>
   );
