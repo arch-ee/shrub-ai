@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Heart, Droplet, Sun, ThermometerSun, AlertTriangle } from 'lucide-react';
+import { Heart, Droplet, Sun, ThermometerSun, AlertTriangle, Check, X, Apple } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,9 @@ interface PlantInfo {
   isEdible?: boolean;
   toxicity?: string;
   warning?: string;
+  category?: 'plant' | 'fruit' | 'berry' | 'fungi';
+  nutritionalValue?: string;
+  safeToTouch?: boolean;
 }
 
 interface PlantInfoCardProps {
@@ -24,11 +27,23 @@ interface PlantInfoCardProps {
 }
 
 const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
-  const getHealthDescription = (health: number) => {
-    if (health >= 90) return 'Very healthy 🌿';
-    if (health >= 70) return 'Healthy 🌱';
-    if (health >= 50) return 'Needs some care 🍃';
-    return 'Needs immediate attention 🥀';
+  const getHealthDescription = (health: number, category?: string) => {
+    if (category === 'fruit' || category === 'berry') {
+      if (health >= 90) return 'Perfect ripeness 🍎';
+      if (health >= 70) return 'Good condition 🍏';
+      if (health >= 50) return 'Eat soon 🥭';
+      return 'Past prime 🥝';
+    } else if (category === 'fungi') {
+      if (health >= 90) return 'Fresh specimen 🍄';
+      if (health >= 70) return 'Good condition 🍄';
+      if (health >= 50) return 'Still usable 🍄';
+      return 'Poor condition 🍄';
+    } else {
+      if (health >= 90) return 'Very healthy 🌿';
+      if (health >= 70) return 'Healthy 🌱';
+      if (health >= 50) return 'Needs some care 🍃';
+      return 'Needs immediate attention 🥀';
+    }
   };
 
   const getWaterEmoji = (waterNeeds: string) => {
@@ -82,18 +97,43 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
     return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
   };
 
-  const isUnknown = plantInfo.name === 'Unknown plant';
+  const getHealthColor = (health: number) => {
+    if (health >= 90) return 'bg-green-500';
+    if (health >= 70) return 'bg-green-400';
+    if (health >= 50) return 'bg-yellow-500';
+    if (health >= 30) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
+
+  const isUnknown = plantInfo.name.includes('Unknown');
+  const isFungi = plantInfo.category === 'fungi';
+  const isFruit = plantInfo.category === 'fruit';
+  const isBerry = plantInfo.category === 'berry';
+  const isPlant = plantInfo.category === 'plant' || !plantInfo.category;
+  
+  const getCardTitle = () => {
+    if (isUnknown) {
+      if (isFungi) return "Unknown Fungi 🍄";
+      if (isFruit) return "Unknown Fruit 🍎";
+      if (isBerry) return "Unknown Berry 🍒";
+      return "Unknown Plant 🌱";
+    }
+    return plantInfo.name;
+  };
 
   return (
     <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-fade-in dark:bg-gray-800/60 dark:border-gray-700 dark:text-cream-50">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-medium text-leaf-900 dark:text-cream-100">
-            {isUnknown ? "Unknown Plant 🌱" : plantInfo.name}
+            {getCardTitle()}
           </h2>
           {!isUnknown && (
             <span className="text-2xl">
-              {plantInfo.health >= 70 ? '🌿' : plantInfo.health >= 50 ? '🌱' : '🥀'}
+              {isFungi ? '🍄' : 
+               isFruit ? '🍎' : 
+               isBerry ? '🍒' :
+               (plantInfo.health >= 70 ? '🌿' : plantInfo.health >= 50 ? '🌱' : '🥀')}
             </span>
           )}
         </div>
@@ -101,7 +141,7 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
         <div className="space-y-3">
           {isUnknown ? (
             <div className="text-sm text-leaf-600 dark:text-cream-300 italic">
-              We couldn't identify this plant. Try taking a clearer picture or from a different angle.
+              We couldn't identify this {plantInfo.category || 'plant'}. Try taking a clearer picture or from a different angle.
             </div>
           ) : (
             <>
@@ -109,26 +149,60 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
                 <div className="flex items-center justify-between text-sm text-leaf-600 dark:text-cream-300">
                   <div className="flex items-center">
                     <Heart className="w-4 h-4 mr-2 text-leaf-500 dark:text-leaf-400" />
-                    <span>{getHealthDescription(plantInfo.health)}</span>
+                    <span>{getHealthDescription(plantInfo.health, plantInfo.category)}</span>
                   </div>
                   <span className="font-medium">{plantInfo.health}%</span>
                 </div>
-                <Progress value={plantInfo.health} className="h-2 bg-leaf-100 dark:bg-leaf-900" />
+                <Progress 
+                  value={plantInfo.health} 
+                  className="h-2 bg-leaf-100 dark:bg-leaf-900" 
+                  style={{
+                    "--progress-background": getHealthColor(plantInfo.health)
+                  } as React.CSSProperties}
+                />
               </div>
               
-              <div className="flex items-center text-sm text-leaf-600 dark:text-cream-300">
-                <Droplet className="w-4 h-4 mr-2 text-leaf-500 dark:text-leaf-400" />
-                <span>water needs: {plantInfo.waterNeeds} {getWaterEmoji(plantInfo.waterNeeds)}</span>
-              </div>
+              {/* Display plant-specific information for plants only */}
+              {isPlant && (
+                <>
+                  <div className="flex items-center text-sm text-leaf-600 dark:text-cream-300">
+                    <Droplet className="w-4 h-4 mr-2 text-leaf-500 dark:text-leaf-400" />
+                    <span>water needs: {plantInfo.waterNeeds} {getWaterEmoji(plantInfo.waterNeeds)}</span>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-leaf-600 dark:text-cream-300">
+                    <Sun className="w-4 h-4 mr-2 text-leaf-500 dark:text-leaf-400" />
+                    <span>sunlight: {plantInfo.sunlight} {getSunlightEmoji(plantInfo.sunlight)}</span>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-leaf-600 dark:text-cream-300">
+                    <ThermometerSun className="w-4 h-4 mr-2 text-leaf-500 dark:text-leaf-400" />
+                    <span>temperature: {plantInfo.temperature} {getTemperatureEmoji(plantInfo.temperature)}</span>
+                  </div>
+                </>
+              )}
+
+              {/* Display nutritional info for fruits and berries */}
+              {(isFruit || isBerry) && plantInfo.nutritionalValue && (
+                <div className="flex items-center text-sm text-leaf-600 dark:text-cream-300">
+                  <Apple className="w-4 h-4 mr-2 text-leaf-500 dark:text-leaf-400" />
+                  <span>nutritional value: {plantInfo.nutritionalValue}</span>
+                </div>
+              )}
               
+              {/* Safe to touch indicator */}
               <div className="flex items-center text-sm text-leaf-600 dark:text-cream-300">
-                <Sun className="w-4 h-4 mr-2 text-leaf-500 dark:text-leaf-400" />
-                <span>sunlight: {plantInfo.sunlight} {getSunlightEmoji(plantInfo.sunlight)}</span>
-              </div>
-              
-              <div className="flex items-center text-sm text-leaf-600 dark:text-cream-300">
-                <ThermometerSun className="w-4 h-4 mr-2 text-leaf-500 dark:text-leaf-400" />
-                <span>temperature: {plantInfo.temperature} {getTemperatureEmoji(plantInfo.temperature)}</span>
+                {plantInfo.safeToTouch ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2 text-green-500" />
+                    <span>Safe to touch</span>
+                  </>
+                ) : (
+                  <>
+                    <X className="w-4 h-4 mr-2 text-red-500" />
+                    <span>Not safe to touch</span>
+                  </>
+                )}
               </div>
               
               <div className="flex flex-wrap gap-2 mt-3">
@@ -163,6 +237,21 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
                       <p className="text-sm text-green-600 dark:text-green-200">{plantInfo.cure}</p>
                     </div>
                   )}
+                </div>
+              )}
+              
+              {/* Show fungi disclaimer */}
+              {isFungi && (
+                <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-100 dark:border-red-800/30">
+                  <div className="flex items-start">
+                    <AlertTriangle className="w-5 h-5 text-red-500 mr-2 mt-0.5" />
+                    <div>
+                      <h3 className="font-medium text-red-700 dark:text-red-300 mb-1">Fungi Disclaimer</h3>
+                      <p className="text-sm text-red-600 dark:text-red-200">
+                        Never consume any fungi based solely on AI identification. Many poisonous mushrooms look similar to edible ones. Always consult with a mycology expert before consuming any wild fungi.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
               
