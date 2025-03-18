@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Camera, Upload, Sprout, Mushroom, Apple } from 'lucide-react';
+import { Camera, Upload, Sprout, Apple, Leaf } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -87,7 +87,7 @@ const PlantIdentifier = () => {
       case "plants":
         return { icon: <Sprout className="w-4 h-4 mr-2" />, title: "plants" };
       case "fungi":
-        return { icon: <Mushroom className="w-4 h-4 mr-2" />, title: "fungi" };
+        return { icon: <Leaf className="w-4 h-4 mr-2" />, title: "fungi" };
       case "fruit":
         return { icon: <Apple className="w-4 h-4 mr-2" />, title: "fruits & berries" };
       case "edible":
@@ -311,7 +311,7 @@ const PlantIdentifier = () => {
               <span className="hidden sm:inline">Plants</span>
             </TabsTrigger>
             <TabsTrigger value="fungi" className="data-[state=active]:bg-leaf-100 dark:data-[state=active]:bg-leaf-900/30">
-              <Mushroom className="w-4 h-4 mr-1" />
+              <Leaf className="w-4 h-4 mr-1" />
               <span className="hidden sm:inline">Fungi</span>
             </TabsTrigger>
             <TabsTrigger value="fruit" className="data-[state=active]:bg-leaf-100 dark:data-[state=active]:bg-leaf-900/30">
