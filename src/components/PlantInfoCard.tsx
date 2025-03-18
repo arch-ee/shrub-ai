@@ -97,7 +97,24 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
     return '🌱';
   };
 
+  const getHealthStatusColor = (health: number) => {
+    if (health >= 90) return 'bg-green-500';
+    if (health >= 70) return 'bg-green-400';
+    if (health >= 50) return 'bg-yellow-400';
+    if (health >= 30) return 'bg-orange-400';
+    return 'bg-red-500';
+  };
+
+  const getHealthCardColor = (health: number) => {
+    if (health >= 90) return 'bg-green-50 border-green-100 dark:bg-green-900/20 dark:border-green-800/30';
+    if (health >= 70) return 'bg-green-50 border-green-100 dark:bg-green-900/20 dark:border-green-800/30';
+    if (health >= 50) return 'bg-yellow-50 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-800/30';
+    if (health >= 30) return 'bg-orange-50 border-orange-100 dark:bg-orange-900/20 dark:border-orange-800/30';
+    return 'bg-red-50 border-red-100 dark:bg-red-900/20 dark:border-red-800/30';
+  };
+
   const isUnknown = plantInfo.name === 'Unknown specimen' || plantInfo.name === 'Unknown plant';
+  const isFungi = plantInfo.category?.toLowerCase() === 'fungi' || plantInfo.category?.toLowerCase() === 'mushroom';
 
   return (
     <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-fade-in dark:bg-gray-800/60 dark:border-gray-700 dark:text-cream-50">
@@ -126,7 +143,7 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
                 </div>
               )}
               
-              <div className="space-y-1">
+              <div className={`space-y-1 p-3 rounded-md ${getHealthCardColor(plantInfo.health)}`}>
                 <div className="flex items-center justify-between text-sm text-leaf-600 dark:text-cream-300">
                   <div className="flex items-center">
                     <Heart className="w-4 h-4 mr-2 text-leaf-500 dark:text-leaf-400" />
@@ -134,7 +151,11 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
                   </div>
                   <span className="font-medium">{plantInfo.health}%</span>
                 </div>
-                <Progress value={plantInfo.health} className="h-2 bg-leaf-100 dark:bg-leaf-900" />
+                <Progress 
+                  value={plantInfo.health} 
+                  className={`h-2 bg-leaf-100 dark:bg-leaf-900`} 
+                  indicatorClassName={getHealthStatusColor(plantInfo.health)}
+                />
               </div>
               
               <div className="flex items-center text-sm text-leaf-600 dark:text-cream-300">
@@ -152,29 +173,78 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
                 <span>temperature: {plantInfo.temperature} {getTemperatureEmoji(plantInfo.temperature)}</span>
               </div>
               
-              <div className="flex flex-wrap gap-2 mt-3">
-                {plantInfo.isEdible !== undefined && (
-                  <Badge 
-                    className={plantInfo.isEdible 
-                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
-                      : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                    }
-                  >
-                    {plantInfo.isEdible ? 'Edible ✓' : 'Not Edible ✗'}
-                  </Badge>
+              {/* Safety Information Section */}
+              <div className="mt-4 p-4 bg-cream-50 rounded-md border border-cream-200 dark:bg-gray-700/50 dark:border-gray-600">
+                <h3 className="font-medium text-leaf-900 dark:text-cream-100 mb-3">Safety Information</h3>
+                
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {plantInfo.isEdible !== undefined && (
+                    <Badge 
+                      className={plantInfo.isEdible 
+                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
+                        : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                      }
+                    >
+                      {plantInfo.isEdible ? 'Edible ✓' : 'Not Edible ✗'}
+                    </Badge>
+                  )}
+                  
+                  {plantInfo.toxicity && plantInfo.toxicity !== 'Unknown' && (
+                    <Badge className={getToxicityColor(plantInfo.toxicity)}>
+                      Toxicity: {plantInfo.toxicity}
+                    </Badge>
+                  )}
+                  
+                  {plantInfo.harmfulTouch && (
+                    <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
+                      Harmful to Touch ⚠️
+                    </Badge>
+                  )}
+                </div>
+                
+                {/* Fungi Disclaimer */}
+                {isFungi && (
+                  <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-100 dark:border-red-800/30">
+                    <div className="flex items-start">
+                      <AlertTriangle className="w-5 h-5 text-red-500 mr-2 mt-0.5" />
+                      <div>
+                        <h3 className="font-medium text-red-700 dark:text-red-300 mb-1">Mushroom Warning</h3>
+                        <p className="text-sm text-red-600 dark:text-red-200">
+                          Visual identification of fungi can be extremely unreliable. Many toxic mushrooms closely resemble edible varieties. Never consume wild mushrooms based solely on app identification. Consult with a professional mycologist.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 )}
                 
-                {plantInfo.toxicity && plantInfo.toxicity !== 'Unknown' && (
-                  <Badge className={getToxicityColor(plantInfo.toxicity)}>
-                    Toxicity: {plantInfo.toxicity}
-                  </Badge>
+                {/* Warning Containers */}
+                {plantInfo.warning && (
+                  <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md border border-yellow-100 dark:border-yellow-800/30">
+                    <div className="flex items-start">
+                      <Skull className="w-5 h-5 text-yellow-500 mr-2 mt-0.5" />
+                      <div>
+                        <h3 className="font-medium text-yellow-700 dark:text-yellow-300 mb-1">If Consumed</h3>
+                        <p className="text-sm text-yellow-600 dark:text-yellow-200">{plantInfo.warning}</p>
+                      </div>
+                    </div>
+                  </div>
                 )}
                 
-                {plantInfo.harmfulTouch && (
-                  <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
-                    Harmful to Touch ⚠️
-                  </Badge>
+                {plantInfo.touchWarning && (
+                  <div className="mb-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-md border border-orange-100 dark:border-orange-800/30">
+                    <div className="flex items-start">
+                      <HandMetal className="w-5 h-5 text-orange-500 mr-2 mt-0.5" />
+                      <div>
+                        <h3 className="font-medium text-orange-700 dark:text-orange-300 mb-1">If Touched</h3>
+                        <p className="text-sm text-orange-600 dark:text-orange-200">{plantInfo.touchWarning}</p>
+                      </div>
+                    </div>
+                  </div>
                 )}
+                
+                <p className="text-xs text-leaf-500 dark:text-leaf-300 mt-2">
+                  ⚠️ This information is provided as guidance only. In case of ingestion of a potentially harmful substance, contact poison control immediately.
+                </p>
               </div>
               
               {(plantInfo.diagnosis || plantInfo.hasRottenLeaves) && (
@@ -190,30 +260,6 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
                       <p className="text-sm text-green-600 dark:text-green-200">{plantInfo.cure}</p>
                     </div>
                   )}
-                </div>
-              )}
-              
-              {plantInfo.warning && (
-                <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md border border-yellow-100 dark:border-yellow-800/30">
-                  <div className="flex items-start">
-                    <Skull className="w-5 h-5 text-yellow-500 mr-2 mt-0.5" />
-                    <div>
-                      <h3 className="font-medium text-yellow-700 dark:text-yellow-300 mb-1">If Consumed</h3>
-                      <p className="text-sm text-yellow-600 dark:text-yellow-200">{plantInfo.warning}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {plantInfo.touchWarning && (
-                <div className="mt-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-md border border-orange-100 dark:border-orange-800/30">
-                  <div className="flex items-start">
-                    <HandMetal className="w-5 h-5 text-orange-500 mr-2 mt-0.5" />
-                    <div>
-                      <h3 className="font-medium text-orange-700 dark:text-orange-300 mb-1">If Touched</h3>
-                      <p className="text-sm text-orange-600 dark:text-orange-200">{plantInfo.touchWarning}</p>
-                    </div>
-                  </div>
                 </div>
               )}
             </>

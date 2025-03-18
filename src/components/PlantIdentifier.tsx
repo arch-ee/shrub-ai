@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import CameraView from './CameraView';
 import PlantInfoCard from './PlantInfoCard';
+import PlantStoreLocator from './PlantStoreLocator';
 import ThemeToggle from './ThemeToggle';
 
 interface PlantInfo {
@@ -186,6 +187,14 @@ const PlantIdentifier = () => {
               variant: "destructive",
             });
           }
+          
+          if (plantData.category?.toLowerCase() === 'fungi' || plantData.category?.toLowerCase() === 'mushroom') {
+            toast({
+              title: "fungi warning",
+              description: "Visual identification of fungi can be extremely unreliable. Never consume wild mushrooms without expert confirmation.",
+              variant: "destructive",
+            });
+          }
         }
       } catch (jsonError) {
         console.error("Error parsing JSON from response:", jsonError);
@@ -306,6 +315,10 @@ const PlantIdentifier = () => {
         )}
 
         {plantInfo && <PlantInfoCard plantInfo={plantInfo} />}
+        
+        {plantInfo && plantInfo.name && plantInfo.name !== 'Unknown specimen' && (
+          <PlantStoreLocator plantName={plantInfo.name} />
+        )}
       </div>
     </div>
   );
