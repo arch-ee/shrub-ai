@@ -1,4 +1,3 @@
-
 export interface DeepSeekMessage {
   role: 'system' | 'user' | 'assistant';
   content: string | DeepSeekContent[];
@@ -28,11 +27,52 @@ export interface DeepSeekResponse {
   };
 }
 
+/**
+ * Process an image URL to ensure it's in a format DeepSeek can handle
+ * DeepSeek only accepts certain image formats and may have size limitations
+ */
+export const processImageUrl = (imageUrl: string): string => {
+  // If the image is a data URL, ensure it's properly formatted
+  if (imageUrl.startsWith('data:')) {
+    // For data URLs, we need to make sure they're in a supported format and not too large
+    // Keep only the first 500KB of the image to avoid request payload limitations
+    const maxLength = 500000; // 500KB limit for base64 data
+    if (imageUrl.length > maxLength) {
+      console.warn('Image is too large, truncating to avoid API limitations');
+      return imageUrl.substring(0, maxLength) + (imageUrl.includes(';base64,') ? "'" : "");
+    }
+  }
+  return imageUrl;
+};
+
 export const sendMessageToDeepSeek = async (
   messages: DeepSeekMessage[],
   apiKey: string
 ): Promise<string> => {
   try {
+    // Process messages to ensure proper format for API
+    const processedMessages = messages.map(msg => {
+      if (typeof msg.content === 'string') {
+        return msg;
+      }
+      
+      // Process content array
+      return {
+        ...msg,
+        content: msg.content.map(item => {
+          if (item.type === 'image_url' && item.image_url) {
+            return {
+              type: 'image_url',
+              image_url: {
+                url: processImageUrl(item.image_url.url)
+              }
+            };
+          }
+          return item;
+        })
+      };
+    });
+
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -41,13 +81,15 @@ export const sendMessageToDeepSeek = async (
       },
       body: JSON.stringify({
         model: 'deepseek-v2',
-        messages: messages,
+        messages: processedMessages,
         max_tokens: 1000
       })
     });
 
     if (!response.ok) {
       const errorData = await response.text();
+      console.error('DeepSeek API Error Status:', response.status);
+      console.error('DeepSeek API Error Details:', errorData);
       throw new Error(`DeepSeek API Error: ${response.status} - ${errorData}`);
     }
 
