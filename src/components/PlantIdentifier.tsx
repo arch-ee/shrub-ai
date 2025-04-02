@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Camera, Upload, Sprout, HelpCircle, MessageCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -11,6 +10,7 @@ import PlantInfoCard from './PlantInfoCard';
 import ThemeToggle from './ThemeToggle';
 import OnlineStores from './store-locator/OnlineStores';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import AIAssistant from './AIAssistant';
 
 interface PlantInfo {
   name: string;
@@ -62,10 +62,10 @@ const PlantIdentifier = () => {
   const [showAgent, setShowAgent] = useState(false);
   const { toast } = useToast();
   
+  const deepseekApiKey = 'sk-358c16c6b9e3486e8f38920a8db94c96';
   const apiKey = 'AIzaSyDskk1srl5d4hsWDhSvzZSVi1vezIkgaf8';
   
   useEffect(() => {
-    // Set a random splash text when the component mounts
     const randomIndex = Math.floor(Math.random() * SPLASH_TEXTS.length);
     setSplashText(SPLASH_TEXTS[randomIndex]);
   }, []);
@@ -273,7 +273,6 @@ const PlantIdentifier = () => {
     }
   };
 
-  // Generate mock online stores data for demonstration
   const generateOnlineStores = (plantName: string) => {
     if (!plantName || plantName === "Unknown plant") return [];
     
@@ -395,7 +394,6 @@ const PlantIdentifier = () => {
         )}
       </div>
       
-      {/* Help and AI Assistant buttons */}
       <div className="fixed bottom-4 left-4 flex flex-col gap-2">
         <Button 
           variant="outline" 
@@ -418,7 +416,6 @@ const PlantIdentifier = () => {
         </Button>
       </div>
       
-      {/* Documentation Dialog */}
       <Dialog open={showDocs} onOpenChange={setShowDocs}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -449,6 +446,10 @@ const PlantIdentifier = () => {
               <p>For identified plants, you'll see online stores where you can purchase them.</p>
             </div>
             <div>
+              <h3 className="font-medium mb-1">AI Assistant</h3>
+              <p>Click the chat button at the bottom-left to chat with our AI assistant. You can upload photos directly to the chat to get more detailed information.</p>
+            </div>
+            <div>
               <h3 className="font-medium mb-1">Disclaimers</h3>
               <p>Never rely solely on AI for identifying edible or toxic plants. Always consult with experts before consuming any plant or fungi.</p>
             </div>
@@ -456,31 +457,12 @@ const PlantIdentifier = () => {
         </DialogContent>
       </Dialog>
       
-      {/* AI Assistant Dialog */}
-      <Dialog open={showAgent} onOpenChange={setShowAgent}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>shrubAI Assistant</DialogTitle>
-            <DialogDescription>
-              How can I help you with your plants today?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-cream-50 dark:bg-gray-800 p-3 rounded-lg">
-              <p className="text-sm">Hello! I'm your plant assistant. I can help you identify plants, learn how to care for them, and troubleshoot common plant problems. What would you like to know?</p>
-            </div>
-            <div className="text-xs text-gray-500">
-              Note: For a fully interactive AI assistant, you would need to integrate with an AI service like OpenAI or Google's Gemini.
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              <Button variant="outline" size="sm" className="text-xs">How do I water my plants?</Button>
-              <Button variant="outline" size="sm" className="text-xs">Why are my plant's leaves turning yellow?</Button>
-              <Button variant="outline" size="sm" className="text-xs">Best low-light plants?</Button>
-              <Button variant="outline" size="sm" className="text-xs">How to repot a plant?</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AIAssistant 
+        open={showAgent} 
+        onOpenChange={setShowAgent} 
+        apiKey={deepseekApiKey}
+        selectedImage={showAgent && selectedImage ? selectedImage : null}
+      />
     </div>
   );
 };
