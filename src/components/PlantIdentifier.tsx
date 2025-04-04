@@ -11,6 +11,8 @@ import ThemeToggle from './ThemeToggle';
 import OnlineStores from './store-locator/OnlineStores';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import AIAssistant from './AIAssistant';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 interface PlantInfo {
   name: string;
@@ -30,26 +32,19 @@ interface PlantInfo {
 }
 
 const SPLASH_TEXTS = [
-  "identify your plants. no fuss.",
-  "your pocket botanist",
-  "plant wisdom in your pocket",
-  "leafy knowledge at your fingertips",
-  "unlock nature's secrets",
-  "helping you grow smarter",
-  "what's that plant? we know!",
-  "turning brown thumbs green",
-  "nature's encyclopedia",
-  "the plant whisperer",
-  "botanical brilliance",
-  "from seed to knowledge",
-  "plants decoded",
-  "nature's mysteries solved",
-  "botanical detective",
-  "plant recognition made easy",
+  "plants gone wild",
+  "leaf me alone",
+  "botanical detective agency",
+  "plant whisperer certified",
   "photosynthesis and chill",
   "root for knowledge",
-  "cultivating curiosity",
-  "leaf it to us"
+  "cultivating plant wisdom",
+  "botanical brilliance unlocked",
+  "grow or die",
+  "plants know best",
+  "green thumb unleashed",
+  "botanical magic happening",
+  "plant parenthood simplified"
 ];
 
 const PlantIdentifier = () => {
@@ -70,12 +65,19 @@ const PlantIdentifier = () => {
     setSplashText(SPLASH_TEXTS[randomIndex]);
   }, []);
 
+  const triggerHaptic = async (style: ImpactStyle = ImpactStyle.Medium) => {
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style });
+    }
+  };
+
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setSelectedImage(reader.result as string);
+        triggerHaptic(ImpactStyle.Light);
       };
       reader.readAsDataURL(file);
     }
@@ -84,6 +86,7 @@ const PlantIdentifier = () => {
   const handleCameraCapture = (imageSrc: string) => {
     setSelectedImage(imageSrc);
     setShowCamera(false);
+    triggerHaptic(ImpactStyle.Light);
   };
 
   const handleCameraCancel = () => {
@@ -94,6 +97,27 @@ const PlantIdentifier = () => {
     return "Identify this plant, fruit, berry or fungi from the image. Analyze its health condition. Indicate if it's edible or harmful/poisonous. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations), isEdible (boolean), toxicity (none, mild, moderate, severe), warning (symptoms or harm if consumed or touched), category (one of: 'plant', 'fruit', 'berry', 'fungi'), nutritionalValue (if edible), safeToTouch (boolean). If you cannot identify the item, set name to null. No explanations, just the JSON.";
   };
 
+  const shouldShowToxicityNotification = (plantData: any): boolean => {
+    const commonHouseplants = [
+      'money plant', 'pothos', 'snake plant', 'zz plant', 'spider plant',
+      'peace lily', 'fiddle leaf fig', 'monstera', 'philodendron',
+      'rubber plant', 'dracaena', 'palm', 'succulent', 'cactus',
+      'aloe vera', 'jade plant', 'boston fern', 'chinese evergreen',
+      'prayer plant', 'african violet', 'orchid'
+    ];
+    
+    const isCommonHouseplant = commonHouseplants.some(plant => 
+      plantData.name.toLowerCase().includes(plant.toLowerCase())
+    );
+    
+    return (
+      plantData.toxicity && 
+      plantData.toxicity !== 'none' && 
+      plantData.toxicity !== 'unknown' && 
+      !isCommonHouseplant
+    );
+  };
+
   const identifyPlant = async () => {
     if (!selectedImage) {
       toast({
@@ -101,10 +125,12 @@ const PlantIdentifier = () => {
         description: "please take or upload a photo first",
         variant: "destructive",
       });
+      triggerHaptic(ImpactStyle.Medium);
       return;
     }
 
     setIsLoading(true);
+    triggerHaptic(ImpactStyle.Light);
     
     try {
       const base64Image = selectedImage.split(',')[1];
@@ -178,6 +204,7 @@ const PlantIdentifier = () => {
             description: "We couldn't identify this plant. Try taking a clearer picture.",
             variant: "destructive",
           });
+          triggerHaptic(ImpactStyle.Heavy);
         } else {
           const category = plantData.category || 'plant';
           
@@ -202,21 +229,24 @@ const PlantIdentifier = () => {
             title: `${category} identified`,
             description: `This appears to be a ${plantData.name}.`,
           });
+          triggerHaptic(ImpactStyle.Medium);
           
-          if (category === 'plant' && plantData.hasRottenLeaves) {
+          if (category === 'plant' && plantData.hasRottenLeaves && plantData.health < 50) {
             toast({
               title: "issue detected",
               description: "This plant has signs of disease or damage.",
               variant: "destructive",
             });
+            triggerHaptic(ImpactStyle.Heavy);
           }
           
-          if (plantData.toxicity && plantData.toxicity !== 'none') {
+          if (shouldShowToxicityNotification(plantData)) {
             toast({
               title: "caution required",
               description: `This ${category} has ${plantData.toxicity} toxicity.`,
               variant: "destructive",
             });
+            triggerHaptic(ImpactStyle.Heavy);
           }
 
           if (category === 'fungi' && (plantData.isEdible === true)) {
@@ -225,6 +255,7 @@ const PlantIdentifier = () => {
               description: "Never consume any fungi based solely on AI identification. Always consult with an expert.",
               variant: "destructive",
             });
+            triggerHaptic(ImpactStyle.Heavy);
           }
         }
       } catch (jsonError) {

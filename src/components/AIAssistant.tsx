@@ -13,6 +13,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Camera, Image, Send, Loader2, Info, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { 
   DeepSeekMessage, 
   DeepSeekContent, 
@@ -74,6 +76,12 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const triggerHaptic = async (style: ImpactStyle = ImpactStyle.Light) => {
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style });
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -88,6 +96,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 
   const handleImageUpload = (base64Image: string) => {
     setImageUpload(base64Image);
+    triggerHaptic();
     toast({
       title: "Image uploaded",
       description: "You can now ask questions about this image."
@@ -98,6 +107,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     const messageText = textOverride || input;
     if ((!messageText || messageText.trim() === '') && !imageUpload) return;
 
+    triggerHaptic();
     const messageId = `msg-${Date.now()}`;
     let newUserMessage: ChatMessage;
 
@@ -107,8 +117,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
         id: messageId,
         role: 'user',
         content: [
-          { type: 'image_url', image_url: { url: imageUpload } },
-          { type: 'text', text: messageText }
+          { 
+            type: 'image_url', 
+            image_url: { url: imageUpload }
+          },
+          { 
+            type: 'text', 
+            text: messageText 
+          }
         ]
       };
       setImageUpload(null); // Clear the image after sending
@@ -148,6 +164,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
         content: newUserMessage.content
       });
 
+      console.log('Sending to DeepSeek:', JSON.stringify(apiMessages).substring(0, 200) + '...');
+
       // Send to DeepSeek API
       const response = await sendMessageToDeepSeek(apiMessages, apiKey);
 
@@ -159,6 +177,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
             : msg
         )
       );
+      triggerHaptic(ImpactStyle.Medium);
     } catch (error) {
       console.error('Error in AI Assistant:', error);
       
@@ -180,6 +199,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
         description: "Failed to get a response from the AI assistant.",
         variant: "destructive"
       });
+      triggerHaptic(ImpactStyle.Heavy);
     } finally {
       setIsLoading(false);
     }

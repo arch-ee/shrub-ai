@@ -18,6 +18,9 @@ const config: CapacitorConfig = {
     },
     CapacitorHttp: {
       enabled: true
+    },
+    Haptics: {
+      selectionStarted: true
     }
   },
   android: {

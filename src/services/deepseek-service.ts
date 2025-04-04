@@ -1,3 +1,4 @@
+
 export interface DeepSeekMessage {
   role: 'system' | 'user' | 'assistant';
   content: string | DeepSeekContent[];
@@ -34,16 +35,15 @@ export interface DeepSeekResponse {
 export const processImageUrl = (imageUrl: string): string => {
   // If the image is a data URL, ensure it's properly formatted
   if (imageUrl.startsWith('data:')) {
-    // For data URLs, we need to make sure they're in a supported format and not too large
-    // Keep only the first 500KB of the image to avoid request payload limitations
-    const maxLength = 500000; // 500KB limit for base64 data
-    if (imageUrl.length > maxLength) {
-      console.warn('Image is too large, truncating to avoid API limitations');
-      return imageUrl.substring(0, maxLength) + (imageUrl.includes(';base64,') ? "'" : "");
+    // Extract the base64 part without the data:image prefix
+    const base64Data = imageUrl.split(',')[1];
+    if (base64Data) {
+      // Return just the base64 data for DeepSeek API
+      return base64Data;
     }
   }
   return imageUrl;
-};
+}
 
 export const sendMessageToDeepSeek = async (
   messages: DeepSeekMessage[],
@@ -56,15 +56,28 @@ export const sendMessageToDeepSeek = async (
         return msg;
       }
       
-      // Process content array
+      // Process content array - this is where the fix is needed
       return {
         ...msg,
         content: msg.content.map(item => {
           if (item.type === 'image_url' && item.image_url) {
+            // For DeepSeek, we need to handle base64 images differently
+            const processedUrl = processImageUrl(item.image_url.url);
+            
+            // If it's a data URL that we processed to base64
+            if (item.image_url.url.startsWith('data:') && !processedUrl.startsWith('data:')) {
+              return {
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/jpeg;base64,${processedUrl}`
+                }
+              };
+            }
+            
             return {
               type: 'image_url',
               image_url: {
-                url: processImageUrl(item.image_url.url)
+                url: processedUrl
               }
             };
           }
@@ -72,6 +85,8 @@ export const sendMessageToDeepSeek = async (
         })
       };
     });
+    
+    console.log('Sending messages to DeepSeek:', JSON.stringify(processedMessages).substring(0, 200) + '...');
 
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
