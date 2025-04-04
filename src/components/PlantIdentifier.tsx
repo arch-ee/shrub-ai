@@ -58,8 +58,7 @@ const PlantIdentifier = () => {
   const [showAgent, setShowAgent] = useState(false);
   const { toast } = useToast();
   
-  const deepseekApiKey = 'sk-358c16c6b9e3486e8f38920a8db94c96';
-  const apiKey = 'AIzaSyDskk1srl5d4hsWDhSvzZSVi1vezIkgaf8';
+  const geminiApiKey = 'AIzaSyDskk1srl5d4hsWDhSvzZSVi1vezIkgaf8';
   
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * SPLASH_TEXTS.length);
@@ -136,7 +135,7 @@ const PlantIdentifier = () => {
     try {
       const base64Image = selectedImage.split(',')[1];
       
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -503,7 +502,7 @@ const PlantIdentifier = () => {
       <AIAssistant 
         open={showAgent} 
         onOpenChange={setShowAgent} 
-        apiKey={deepseekApiKey}
+        apiKey={geminiApiKey}
         selectedImage={showAgent && selectedImage ? selectedImage : null}
       />
     </div>

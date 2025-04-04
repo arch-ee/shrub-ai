@@ -1,100 +1,101 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Trophy, Plant, HelpCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Leaf, Trophy, ArrowUp, ArrowDown, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import ThemeToggle from '@/components/ThemeToggle';
+import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 interface TriviaQuestion {
+  id: string;
   image: string;
-  name: string;
+  answer: string;
   options: string[];
-  funFact?: string;
+  funFact: string;
 }
 
-// Sample plant data for the trivia game
-const PLANT_QUESTIONS: TriviaQuestion[] = [
+// Demo questions
+const DEMO_QUESTIONS: TriviaQuestion[] = [
   {
-    image: "https://images.unsplash.com/photo-1520302519031-fc731d078652",
-    name: "Monstera Deliciosa",
-    options: ["Monstera Deliciosa", "Philodendron", "Pothos", "Snake Plant"],
-    funFact: "Also known as the Swiss Cheese Plant due to its distinctive leaf holes"
+    id: 'q1',
+    image: 'https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?q=80&w=600',
+    answer: 'Monstera Deliciosa',
+    options: ['Monstera Deliciosa', 'Fiddle Leaf Fig', 'Pothos', 'Snake Plant'],
+    funFact: 'Also known as "Swiss Cheese Plant" because of its unique leaf holes!'
   },
   {
-    image: "https://images.unsplash.com/photo-1463936575829-25148e1db1b8",
-    name: "Snake Plant",
-    options: ["ZZ Plant", "Snake Plant", "Aloe Vera", "Dracaena"],
-    funFact: "One of the most tolerant houseplants that can purify air"
+    id: 'q2',
+    image: 'https://images.unsplash.com/photo-1614594805320-e6a5549a8247?q=80&w=600',
+    answer: 'Fiddle Leaf Fig',
+    options: ['Snake Plant', 'Fiddle Leaf Fig', 'ZZ Plant', 'Rubber Plant'],
+    funFact: 'Native to western Africa, it's one of the most popular indoor plants despite being somewhat challenging to care for.'
   },
   {
-    image: "https://images.unsplash.com/photo-1596722656664-3e9dd9d1c911",
-    name: "Fiddle Leaf Fig",
-    options: ["Rubber Plant", "Fiddle Leaf Fig", "Bird of Paradise", "Ficus"],
-    funFact: "Native to western Africa and grows in lowland tropical rainforests"
+    id: 'q3',
+    image: 'https://images.unsplash.com/photo-1620127682229-33388276e540?q=80&w=600',
+    answer: 'Snake Plant',
+    options: ['Peace Lily', 'ZZ Plant', 'Snake Plant', 'Aloe Vera'],
+    funFact: 'One of the few plants that convert CO2 to oxygen at night, making it great for bedrooms!'
   },
   {
-    image: "https://images.unsplash.com/photo-1611211232932-da3108398388",
-    name: "Pothos",
-    options: ["Monstera", "Philodendron", "Pothos", "English Ivy"],
-    funFact: "One of the easiest houseplants to grow and propagate in water"
+    id: 'q4',
+    image: 'https://images.unsplash.com/photo-1637967886160-fd78dc3ce2ac?q=80&w=600',
+    answer: 'Pothos',
+    options: ['Philodendron', 'Pothos', 'Ivy', 'Spider Plant'],
+    funFact: 'Also called "Devil's Ivy" because it's almost impossible to kill and stays green even in the dark.'
   },
   {
-    image: "https://images.unsplash.com/photo-1509423350716-97f9360b4e09",
-    name: "Peace Lily",
-    options: ["Calla Lily", "Peace Lily", "Anthurium", "Bird's Nest Fern"],
-    funFact: "Will droop dramatically when thirsty, but perks up quickly after watering"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1592170077110-517b691cb8ef",
-    name: "Succulents",
-    options: ["Cacti", "Succulents", "Aloe", "Jade Plant"],
-    funFact: "These water-storing plants have adapted to survive in arid conditions"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1622554129902-bb01970e2540",
-    name: "Aloe Vera",
-    options: ["Haworthia", "Agave", "Aloe Vera", "Snake Plant"],
-    funFact: "Its gel has been used for thousands of years for medicinal purposes"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1509423350716-97f9360b4e09",
-    name: "Calathea",
-    options: ["Calathea", "Maranta", "Stromanthe", "Ctenanthe"],
-    funFact: "Known as 'prayer plants' because they raise their leaves at night"
+    id: 'q5',
+    image: 'https://images.unsplash.com/photo-1509423350716-97f9360b4e09?q=80&w=600',
+    answer: 'Aloe Vera',
+    options: ['Aloe Vera', 'Agave', 'Haworthia', 'Echeveria'],
+    funFact: 'Used medicinally for over 6,000 years! The gel inside its leaves has healing properties.'
   }
 ];
 
+const SPLASH_TEXTS = [
+  "plant quiz",
+  "name game",
+  "green test",
+  "leaf knowledge",
+  "botany challenge",
+  "identify leaves"
+];
+
 const PlantTrivia = () => {
+  const [questions, setQuestions] = useState<TriviaQuestion[]>(DEMO_QUESTIONS);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [splashText, setSplashText] = useState('');
+  const navigate = useNavigate();
   const { toast } = useToast();
-  
-  // Load high score from localStorage
+
   useEffect(() => {
+    // Load high score from localStorage
     const savedHighScore = localStorage.getItem('plantTriviaHighScore');
     if (savedHighScore) {
       setHighScore(parseInt(savedHighScore));
     }
+    
+    // Set random splash text
+    const randomIndex = Math.floor(Math.random() * SPLASH_TEXTS.length);
+    setSplashText(SPLASH_TEXTS[randomIndex]);
+    
+    // Shuffle questions
+    setQuestions([...DEMO_QUESTIONS].sort(() => Math.random() - 0.5));
   }, []);
-
-  // Save high score to localStorage when it changes
-  useEffect(() => {
-    if (score > highScore) {
-      setHighScore(score);
-      localStorage.setItem('plantTriviaHighScore', score.toString());
-    }
-  }, [score, highScore]);
 
   const triggerHaptic = async (style: ImpactStyle = ImpactStyle.Medium) => {
     if (Capacitor.isNativePlatform()) {
@@ -103,181 +104,206 @@ const PlantTrivia = () => {
   };
 
   const handleOptionSelect = (option: string) => {
-    if (selectedOption || showAnswer) return;
-    
     setSelectedOption(option);
     setShowAnswer(true);
     
-    const isCorrect = option === PLANT_QUESTIONS[currentQuestionIndex].name;
-    
-    if (isCorrect) {
-      setScore(prevScore => prevScore + 1);
+    if (option === getCurrentQuestion().answer) {
+      setScore(prev => prev + 1);
+      triggerHaptic(ImpactStyle.Medium);
       toast({
         title: "correct!",
-        description: "You identified the plant correctly",
-        className: "bg-leaf-600/90 text-white"
+        description: `That's ${getCurrentQuestion().answer}`,
+        variant: "default",
       });
-      triggerHaptic(ImpactStyle.Light);
     } else {
-      toast({
-        title: "not quite",
-        description: `That's a ${PLANT_QUESTIONS[currentQuestionIndex].name}`,
-        variant: "destructive"
-      });
-      triggerHaptic(ImpactStyle.Medium);
-    }
-  };
-
-  const nextQuestion = () => {
-    if (currentQuestionIndex < PLANT_QUESTIONS.length - 1) {
-      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
-      setSelectedOption(null);
-      setShowAnswer(false);
-      triggerHaptic(ImpactStyle.Light);
-    } else {
-      setGameOver(true);
       triggerHaptic(ImpactStyle.Heavy);
       toast({
-        title: "quiz complete!",
-        description: `Your score: ${score}/${PLANT_QUESTIONS.length}`,
+        title: "not quite",
+        description: `The answer is ${getCurrentQuestion().answer}`,
+        variant: "destructive",
       });
     }
   };
-
-  const restartGame = () => {
-    setCurrentQuestionIndex(0);
-    setSelectedOption(null);
-    setShowAnswer(false);
-    setGameOver(false);
-    setScore(0);
-    triggerHaptic(ImpactStyle.Medium);
+  
+  const handleNextQuestion = () => {
+    triggerHaptic(ImpactStyle.Light);
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      setSelectedOption(null);
+      setShowAnswer(false);
+    } else {
+      // End of quiz
+      if (score > highScore) {
+        setHighScore(score);
+        localStorage.setItem('plantTriviaHighScore', score.toString());
+        toast({
+          title: "new high score!",
+          description: `You got ${score} out of ${questions.length} correct!`,
+        });
+        triggerHaptic(ImpactStyle.Heavy);
+      } else {
+        toast({
+          title: "quiz complete",
+          description: `You got ${score} out of ${questions.length} correct!`,
+        });
+      }
+      
+      // Reset quiz with shuffled questions
+      setTimeout(() => {
+        setQuestions([...DEMO_QUESTIONS].sort(() => Math.random() - 0.5));
+        setCurrentQuestionIndex(0);
+        setScore(0);
+        setSelectedOption(null);
+        setShowAnswer(false);
+      }, 1500);
+    }
+  };
+  
+  const getCurrentQuestion = (): TriviaQuestion => {
+    return questions[currentQuestionIndex];
+  };
+  
+  const getProgressPercentage = () => {
+    return ((currentQuestionIndex + 1) / questions.length) * 100;
+  };
+  
+  const isCorrect = (option: string) => {
+    return showAnswer && option === getCurrentQuestion().answer;
+  };
+  
+  const isIncorrect = (option: string) => {
+    return showAnswer && selectedOption === option && option !== getCurrentQuestion().answer;
   };
 
-  const currentQuestion = PLANT_QUESTIONS[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / PLANT_QUESTIONS.length) * 100;
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center">
-      <div className="w-full max-w-md">
-        <div className="flex justify-between items-center mb-6">
-          <Link to="/">
-            <Button variant="outline" size="icon" className="bg-gray-800/50 hover:bg-gray-800/80 rounded-full">
-              <ArrowLeft className="h-5 w-5 text-cream-100" />
-              <span className="sr-only">Back to home</span>
-            </Button>
-          </Link>
-          <Badge className="bg-leaf-600 text-white">plant trivia</Badge>
-          <ThemeToggle />
+    <div className="min-h-screen bg-gradient-to-b from-cream-50 to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center transition-colors duration-300">
+      <ThemeToggle />
+      
+      <div className="w-full max-w-md space-y-4 animate-fade-in">
+        <div className="text-center space-y-2">
+          <Badge variant="subtle" className="mb-2 bg-cream-100 dark:bg-gray-800 dark:text-cream-100">shrubAI</Badge>
+          <h1 className="text-2xl font-light text-leaf-900 dark:text-cream-100">{splashText}</h1>
         </div>
         
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center px-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => navigate('/')}
+            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <ArrowUp className="h-4 w-4 mr-1 rotate-90" />
+            back home
+          </Button>
+          
           <div className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-cream-200" />
-            <span className="text-cream-100">Score: {score}</span>
+            <Trophy className="h-4 w-4 text-yellow-500" />
+            <span className="text-sm font-medium dark:text-cream-100">
+              {score}/{questions.length} • high: {highScore}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Plant className="h-5 w-5 text-cream-200" />
-            <span className="text-cream-100">Best: {highScore}</span>
-          </div>
+          
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setShowHelp(true)}
+            className="h-8 w-8"
+          >
+            <HelpCircle className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+          </Button>
         </div>
         
-        {!gameOver ? (
-          <>
-            <Progress value={progress} className="h-2 mb-6" />
+        <Progress value={getProgressPercentage()} className="h-1 bg-gray-200 dark:bg-gray-700" />
+        
+        <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg dark:bg-gray-800/60 dark:border-gray-700 dark:shadow-gray-900/30">
+          <div className="space-y-4">
+            <div className="flex justify-center">
+              <AspectRatio ratio={4/3} className="relative w-full rounded-lg overflow-hidden">
+                <img
+                  src={getCurrentQuestion().image}
+                  alt="Mystery plant"
+                  className="w-full h-full object-cover"
+                />
+              </AspectRatio>
+            </div>
             
-            <Card className="bg-gray-800/60 border-gray-700 shadow-xl mb-6">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-cream-100 text-lg">Identify this plant</CardTitle>
-                <CardDescription>Question {currentQuestionIndex + 1} of {PLANT_QUESTIONS.length}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AspectRatio ratio={4/3} className="overflow-hidden rounded-md mb-4">
-                  <img 
-                    src={currentQuestion.image} 
-                    alt="Mystery plant" 
-                    className="object-cover w-full h-full"
-                  />
-                </AspectRatio>
-                
-                <div className="grid grid-cols-1 gap-2">
-                  {currentQuestion.options.map(option => (
-                    <Button
-                      key={option}
-                      variant={
-                        showAnswer 
-                          ? option === currentQuestion.name 
-                            ? "default" 
-                            : option === selectedOption 
-                              ? "destructive" 
-                              : "outline"
-                          : "outline"
-                      }
-                      className={`justify-start text-left h-auto py-3 ${
-                        showAnswer && option === currentQuestion.name 
-                          ? "bg-leaf-600 hover:bg-leaf-600 text-white" 
-                          : showAnswer && option === selectedOption && option !== currentQuestion.name 
-                            ? "bg-destructive/90 hover:bg-destructive" 
-                            : "bg-gray-700/50 hover:bg-gray-700 text-cream-100 hover:text-white"
-                      }`}
-                      onClick={() => handleOptionSelect(option)}
-                      disabled={showAnswer}
-                    >
-                      {option}
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between pt-2">
-                {showAnswer && (
-                  <p className="text-sm text-cream-200">{currentQuestion.funFact}</p>
-                )}
-                {showAnswer && (
-                  <Button 
-                    onClick={nextQuestion}
-                    className="ml-auto bg-leaf-600 hover:bg-leaf-700 text-white"
-                  >
-                    {currentQuestionIndex < PLANT_QUESTIONS.length - 1 ? 'Next' : 'Finish'}
-                  </Button>
-                )}
-              </CardFooter>
-            </Card>
-          </>
-        ) : (
-          <Card className="bg-gray-800/60 border-gray-700 shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-cream-100">Quiz Complete!</CardTitle>
-              <CardDescription>You scored {score} out of {PLANT_QUESTIONS.length}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center gap-4">
-              <Trophy className="h-20 w-20 text-cream-500" />
-              <div className="text-center">
-                <p className="text-xl font-bold text-cream-100 mb-2">
-                  {score === PLANT_QUESTIONS.length 
-                    ? 'Perfect Score!' 
-                    : score > PLANT_QUESTIONS.length / 2 
-                      ? 'Great Job!' 
-                      : 'Keep Learning!'}
-                </p>
-                <p className="text-cream-300">
-                  {score === PLANT_QUESTIONS.length 
-                    ? 'You\'re a plant identification master!' 
-                    : score > PLANT_QUESTIONS.length / 2 
-                      ? 'You know your plants well!' 
-                      : 'With practice, you\'ll become a plant expert!'}
-                </p>
+            <div className="text-center">
+              <h2 className="text-lg font-medium dark:text-cream-100">
+                What plant is this?
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-2">
+              {getCurrentQuestion().options.map((option) => (
+                <Button
+                  key={option}
+                  variant={
+                    isCorrect(option) ? "default" : 
+                    isIncorrect(option) ? "destructive" : 
+                    "outline"
+                  }
+                  className={`
+                    justify-start px-4 py-6 h-auto text-left
+                    ${isCorrect(option) ? "bg-green-500 hover:bg-green-600 text-white" : ""}
+                    ${!showAnswer ? "hover:bg-gray-100 dark:hover:bg-gray-700" : ""}
+                    ${showAnswer && !isCorrect(option) && !isIncorrect(option) ? "opacity-70" : ""}
+                    dark:text-cream-100 dark:border-gray-600
+                  `}
+                  disabled={showAnswer}
+                  onClick={() => handleOptionSelect(option)}
+                >
+                  {option}
+                  {isCorrect(option) && (
+                    <Leaf className="ml-auto h-5 w-5 text-white" />
+                  )}
+                </Button>
+              ))}
+            </div>
+            
+            {showAnswer && (
+              <div className="mt-4 p-3 bg-cream-50 rounded-md text-sm dark:bg-gray-700 dark:text-cream-100">
+                <p className="font-medium mb-1">Fun Fact:</p>
+                <p>{getCurrentQuestion().funFact}</p>
               </div>
-            </CardContent>
-            <CardFooter>
-              <Button
-                onClick={restartGame}
-                className="w-full bg-leaf-600 hover:bg-leaf-700 text-white"
+            )}
+            
+            {showAnswer && (
+              <Button 
+                onClick={handleNextQuestion}
+                className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700"
               >
-                Play Again
+                {currentQuestionIndex < questions.length - 1 ? "next plant" : "play again"}
               </Button>
-            </CardFooter>
-          </Card>
-        )}
+            )}
+          </div>
+        </Card>
       </div>
+      
+      <Dialog open={showHelp} onOpenChange={setShowHelp}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>How to Play Plant Trivia</DialogTitle>
+            <DialogDescription>
+              Test your plant identification knowledge
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <div>
+              <h3 className="font-medium mb-1">Game Rules</h3>
+              <p>Each round shows you a plant image and four possible names. Select the correct plant name to score a point.</p>
+            </div>
+            <div>
+              <h3 className="font-medium mb-1">Scoring</h3>
+              <p>Get as many correct answers as possible. Your high score is saved between sessions.</p>
+            </div>
+            <Separator />
+            <div className="text-xs text-gray-500">
+              <p>Plant images sourced from Unsplash.</p>
+              <p>Test your knowledge and have fun learning about different plants!</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
