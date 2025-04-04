@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Leaf, Trophy, ArrowUp, ArrowDown, HelpCircle } from 'lucide-react';
+import { Leaf, Trophy, ArrowUp, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,53 +13,8 @@ import ThemeToggle from '@/components/ThemeToggle';
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-
-interface TriviaQuestion {
-  id: string;
-  image: string;
-  answer: string;
-  options: string[];
-  funFact: string;
-}
-
-// Demo questions
-const DEMO_QUESTIONS: TriviaQuestion[] = [
-  {
-    id: 'q1',
-    image: 'https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?q=80&w=600',
-    answer: 'Monstera Deliciosa',
-    options: ['Monstera Deliciosa', 'Fiddle Leaf Fig', 'Pothos', 'Snake Plant'],
-    funFact: 'Also known as "Swiss Cheese Plant" because of its unique leaf holes!'
-  },
-  {
-    id: 'q2',
-    image: 'https://images.unsplash.com/photo-1614594805320-e6a5549a8247?q=80&w=600',
-    answer: 'Fiddle Leaf Fig',
-    options: ['Snake Plant', 'Fiddle Leaf Fig', 'ZZ Plant', 'Rubber Plant'],
-    funFact: 'Native to western Africa, it\'s one of the most popular indoor plants despite being somewhat challenging to care for.'
-  },
-  {
-    id: 'q3',
-    image: 'https://images.unsplash.com/photo-1620127682229-33388276e540?q=80&w=600',
-    answer: 'Snake Plant',
-    options: ['Peace Lily', 'ZZ Plant', 'Snake Plant', 'Aloe Vera'],
-    funFact: 'One of the few plants that convert CO2 to oxygen at night, making it great for bedrooms!'
-  },
-  {
-    id: 'q4',
-    image: 'https://images.unsplash.com/photo-1637967886160-fd78dc3ce2ac?q=80&w=600',
-    answer: 'Pothos',
-    options: ['Philodendron', 'Pothos', 'Ivy', 'Spider Plant'],
-    funFact: 'Also called "Devil\'s Ivy" because it\'s almost impossible to kill and stays green even in the dark.'
-  },
-  {
-    id: 'q5',
-    image: 'https://images.unsplash.com/photo-1509423350716-97f9360b4e09?q=80&w=600',
-    answer: 'Aloe Vera',
-    options: ['Aloe Vera', 'Agave', 'Haworthia', 'Echeveria'],
-    funFact: 'Used medicinally for over 6,000 years! The gel inside its leaves has healing properties.'
-  }
-];
+import { PLANT_TRIVIA_QUESTIONS, TriviaQuestion } from '@/data/plantTriviaQuestions';
+import { shuffle } from 'lodash';
 
 const SPLASH_TEXTS = [
   "plant quiz",
@@ -71,7 +26,7 @@ const SPLASH_TEXTS = [
 ];
 
 const PlantTrivia = () => {
-  const [questions, setQuestions] = useState<TriviaQuestion[]>(DEMO_QUESTIONS);
+  const [questions, setQuestions] = useState<TriviaQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [score, setScore] = useState(0);
@@ -81,6 +36,11 @@ const PlantTrivia = () => {
   const [splashText, setSplashText] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Function to get a random subset of questions
+  const getRandomQuestions = useCallback((count: number = 10) => {
+    return shuffle([...PLANT_TRIVIA_QUESTIONS]).slice(0, count);
+  }, []);
 
   useEffect(() => {
     // Load high score from localStorage
@@ -93,9 +53,9 @@ const PlantTrivia = () => {
     const randomIndex = Math.floor(Math.random() * SPLASH_TEXTS.length);
     setSplashText(SPLASH_TEXTS[randomIndex]);
     
-    // Shuffle questions
-    setQuestions([...DEMO_QUESTIONS].sort(() => Math.random() - 0.5));
-  }, []);
+    // Get random questions from our large database
+    setQuestions(getRandomQuestions());
+  }, [getRandomQuestions]);
 
   const triggerHaptic = async (style: ImpactStyle = ImpactStyle.Medium) => {
     if (Capacitor.isNativePlatform()) {
@@ -148,9 +108,9 @@ const PlantTrivia = () => {
         });
       }
       
-      // Reset quiz with shuffled questions
+      // Reset quiz with new random questions
       setTimeout(() => {
-        setQuestions([...DEMO_QUESTIONS].sort(() => Math.random() - 0.5));
+        setQuestions(getRandomQuestions());
         setCurrentQuestionIndex(0);
         setScore(0);
         setSelectedOption(null);
@@ -160,7 +120,7 @@ const PlantTrivia = () => {
   };
   
   const getCurrentQuestion = (): TriviaQuestion => {
-    return questions[currentQuestionIndex];
+    return questions[currentQuestionIndex] || PLANT_TRIVIA_QUESTIONS[0];
   };
   
   const getProgressPercentage = () => {
@@ -174,6 +134,17 @@ const PlantTrivia = () => {
   const isIncorrect = (option: string) => {
     return showAnswer && selectedOption === option && option !== getCurrentQuestion().answer;
   };
+
+  if (questions.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-medium mb-2">Loading Plant Trivia...</h2>
+          <Progress value={33} className="w-48 h-2" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-cream-50 to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center transition-colors duration-300">
@@ -299,7 +270,7 @@ const PlantTrivia = () => {
             <Separator />
             <div className="text-xs text-gray-500">
               <p>Plant images sourced from Unsplash.</p>
-              <p>Test your knowledge and have fun learning about different plants!</p>
+              <p>Test your knowledge and have fun learning about different plants! Our database includes 1000 unique questions.</p>
             </div>
           </div>
         </DialogContent>
