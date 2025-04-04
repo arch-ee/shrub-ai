@@ -14,7 +14,9 @@ const config: CapacitorConfig = {
       launchShowDuration: 2000,
       backgroundColor: "#f8fafc",
       androidScaleType: "CENTER_CROP",
-      splashImmersive: true
+      splashImmersive: true,
+      splashFullScreen: true,
+      splashShowOnlyFirstTime: false
     },
     CapacitorHttp: {
       enabled: true

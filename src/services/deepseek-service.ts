@@ -95,7 +95,7 @@ export const sendMessageToDeepSeek = async (
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'deepseek-v2',
+        model: 'deepseek-chat', // Changed from 'deepseek-v2' to 'deepseek-chat'
         messages: processedMessages,
         max_tokens: 1000
       })
