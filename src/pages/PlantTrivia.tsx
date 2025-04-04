@@ -36,7 +36,7 @@ const DEMO_QUESTIONS: TriviaQuestion[] = [
     image: 'https://images.unsplash.com/photo-1614594805320-e6a5549a8247?q=80&w=600',
     answer: 'Fiddle Leaf Fig',
     options: ['Snake Plant', 'Fiddle Leaf Fig', 'ZZ Plant', 'Rubber Plant'],
-    funFact: 'Native to western Africa, it's one of the most popular indoor plants despite being somewhat challenging to care for.'
+    funFact: 'Native to western Africa, it\'s one of the most popular indoor plants despite being somewhat challenging to care for.'
   },
   {
     id: 'q3',
@@ -50,7 +50,7 @@ const DEMO_QUESTIONS: TriviaQuestion[] = [
     image: 'https://images.unsplash.com/photo-1637967886160-fd78dc3ce2ac?q=80&w=600',
     answer: 'Pothos',
     options: ['Philodendron', 'Pothos', 'Ivy', 'Spider Plant'],
-    funFact: 'Also called "Devil's Ivy" because it's almost impossible to kill and stays green even in the dark.'
+    funFact: 'Also called "Devil\'s Ivy" because it\'s almost impossible to kill and stays green even in the dark.'
   },
   {
     id: 'q5',
