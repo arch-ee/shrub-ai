@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Upload, Sprout, HelpCircle, MessageCircle } from 'lucide-react';
+import { Camera, Upload, Sprout, HelpCircle, MessageCircle, Trophy } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import AIAssistant from './AIAssistant';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Link } from 'react-router-dom';
 
 interface PlantInfo {
   name: string;
@@ -32,19 +33,19 @@ interface PlantInfo {
 }
 
 const SPLASH_TEXTS = [
-  "plants gone wild",
-  "leaf me alone",
-  "botanical detective agency",
-  "plant whisperer certified",
-  "photosynthesis and chill",
-  "root for knowledge",
-  "cultivating plant wisdom",
-  "botanical brilliance unlocked",
-  "grow or die",
-  "plants know best",
-  "green thumb unleashed",
-  "botanical magic happening",
-  "plant parenthood simplified"
+  "plants gone",
+  "leaf me",
+  "botanical detective",
+  "plant whisperer",
+  "photosynthesis chill",
+  "root knowledge",
+  "cultivating wisdom",
+  "botanical brilliance",
+  "grow die",
+  "plants know",
+  "green thumb",
+  "botanical magic",
+  "plant parenthood"
 ];
 
 const PlantIdentifier = () => {
@@ -445,6 +446,17 @@ const PlantIdentifier = () => {
           <MessageCircle className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
           <span className="sr-only">AI Assistant</span>
         </Button>
+        
+        <Link to="/trivia">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="bg-white/50 hover:bg-white/80 dark:bg-gray-800/50 dark:hover:bg-gray-800/80 rounded-full shadow-md"
+          >
+            <Trophy className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
+            <span className="sr-only">Plant Trivia</span>
+          </Button>
+        </Link>
       </div>
       
       <Dialog open={showDocs} onOpenChange={setShowDocs}>
