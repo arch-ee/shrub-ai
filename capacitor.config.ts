@@ -26,7 +26,9 @@ const config: CapacitorConfig = {
       androidScaleType: "CENTER_CROP",
       splashImmersive: true,
       splashFullScreen: true,
-      splashShowOnlyFirstTime: false
+      splashShowOnlyFirstTime: false,
+      // Add more splash texts
+      androidSplashResourceName: "splash"
     },
     CapacitorHttp: {
       enabled: true
