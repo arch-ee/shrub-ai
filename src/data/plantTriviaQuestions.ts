@@ -55,7 +55,7 @@ const PLANT_FUN_FACTS = [
   "Known as the 'Swiss Cheese Plant' because of its unique leaf holes!",
   "Native to western Africa, it's one of the most popular indoor plants despite being challenging to care for.",
   "One of the few plants that convert CO2 to oxygen at night, making it great for bedrooms!",
-  "Also called 'Devil\'s Ivy' because it's almost impossible to kill and stays green even in the dark.",
+  "Also called 'Devil\\'s Ivy' because it's almost impossible to kill and stays green even in the dark.",
   "Used medicinally for over 6,000 years! The gel inside its leaves has healing properties.",
   "Produces baby plants called 'spiderettes' that hang from the mother plant on long stems.",
   "NASA named it one of the top indoor plants for purifying air.",
