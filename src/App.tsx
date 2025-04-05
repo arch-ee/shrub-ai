@@ -8,13 +8,14 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { SplashScreen } from "@capacitor/splash-screen";
-import { StatusBar } from "@capacitor/status-bar";
+import { StatusBar, Style } from "@capacitor/status-bar";
 import { Keyboard } from "@capacitor/keyboard";
 import { pushNotificationService } from "@/services/push-notification-service";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import PlantTrivia from "./pages/PlantTrivia";
 
+// Initialize the query client outside of the component
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -25,8 +26,8 @@ const App = () => {
           // Hide splash screen after app is ready
           await SplashScreen.hide();
           
-          // Set status bar style
-          await StatusBar.setStyle({ style: "dark" });
+          // Set status bar style - fixed to use the correct enum value
+          await StatusBar.setStyle({ style: Style.Dark });
           
           // Initialize push notifications
           await pushNotificationService.register();
