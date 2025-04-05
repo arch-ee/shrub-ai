@@ -13,7 +13,6 @@ import { Keyboard } from "@capacitor/keyboard";
 import { pushNotificationService } from "@/services/push-notification-service";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import PlantTrivia from "./pages/PlantTrivia";
 
 // Initialize the query client outside of the component
 const queryClient = new QueryClient();
@@ -74,7 +73,6 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/trivia" element={<PlantTrivia />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
