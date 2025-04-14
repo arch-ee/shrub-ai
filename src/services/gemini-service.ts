@@ -1,4 +1,3 @@
-
 export interface GeminiMessage {
   role: 'user' | 'model';
   parts: GeminiPart[];
@@ -50,12 +49,6 @@ export const sendMessageToGemini = async (
     // The last message is what we'll send as the actual request
     const lastMessage = messages[messages.length - 1];
     
-    // Add system message as a user message at the beginning if needed
-    const systemMessage = messages.find(msg => msg.role === 'user' && 
-      msg.parts.length === 1 && 
-      msg.parts[0].text && 
-      msg.parts[0].text.includes('You are shrubAI'));
-    
     // Build the request body parts from the last message
     const parts = lastMessage.parts.map(part => {
       if (part.inlineData) {
@@ -69,10 +62,18 @@ export const sendMessageToGemini = async (
       return { text: part.text };
     });
     
-    // Prepare the request body
+    // Find system message (first message with specific content)
+    const systemPrompt = getPlantAssistantSystemPrompt();
+    
+    // Prepare the request body with correct role structure
     const requestBody: any = {
       contents: [
         {
+          role: "user",
+          parts: [{ text: systemPrompt }]
+        },
+        {
+          role: "user",
           parts: parts
         }
       ],
@@ -83,13 +84,6 @@ export const sendMessageToGemini = async (
         maxOutputTokens: 1024,
       }
     };
-    
-    // Add system message if available
-    if (systemMessage) {
-      requestBody.contents.unshift({
-        parts: [{ text: systemMessage.parts[0].text }]
-      });
-    }
     
     console.log('Sending messages to Gemini:', JSON.stringify(requestBody).substring(0, 200) + '...');
 

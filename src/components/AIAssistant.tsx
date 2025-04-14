@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { X, Send, Leaf, Image, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { sendMessageToGemini, getPlantAssistantSystemPrompt, GeminiMessage, GeminiPart, processImageUrl } from '@/services/gemini-service';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { VisuallyHidden } from '@/components/ui/visually-hidden';
 
 interface AIAssistantProps {
   open: boolean;
@@ -124,14 +125,8 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
     setIsLoading(true);
     
     try {
-      // Convert message history to Gemini format
-      const systemPrompt = getPlantAssistantSystemPrompt();
-      
+      // Convert message history to Gemini format with correct roles
       const geminiMessages: GeminiMessage[] = [
-        {
-          role: 'user',
-          parts: [{ text: systemPrompt }]
-        },
         {
           role: 'user',
           parts: formatMessageForGemini(messageContent, userImageUrl || undefined)
@@ -196,6 +191,9 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={`flex flex-col ${isMobile ? 'h-[95vh] max-w-[95vw]' : 'h-[80vh] max-w-md'} p-0 gap-0 bg-white dark:bg-gray-800`}>
+        <DialogTitle className="sr-only">
+          <VisuallyHidden>Plant Assistant AI Chat</VisuallyHidden>
+        </DialogTitle>
         <div className="flex justify-between items-center p-3 border-b dark:border-gray-700">
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8 bg-leaf-500/20">
@@ -214,11 +212,11 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
           </Badge>
         </div>
         
-        <ScrollArea className="flex-1 p-3">
-          <div className="space-y-3">
+        <ScrollArea className="flex-1 p-3 overflow-y-auto">
+          <div className="space-y-4 pb-2">
             {messages.map(message => (
-              <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <Card className={`max-w-[85%] p-2.5 ${
+              <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-2`}>
+                <Card className={`max-w-[85%] p-3 ${
                   message.role === 'user' 
                     ? 'bg-leaf-500 text-white' 
                     : message.role === 'system'
@@ -226,14 +224,14 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
                     : 'bg-white text-gray-800 dark:bg-gray-700 dark:text-cream-100'
                 }`}>
                   {message.image && (
-                    <div className="mb-2">
-                      <AspectRatio ratio={16/9} className="overflow-hidden rounded-md mb-2">
+                    <div className="mb-3">
+                      <AspectRatio ratio={4/3} className="overflow-hidden rounded-md">
                         <img src={message.image} alt="Uploaded" className="w-full h-full object-cover" />
                       </AspectRatio>
                     </div>
                   )}
                   <div className="text-sm whitespace-pre-wrap">{message.content}</div>
-                  <div className={`text-[10px] mt-1 text-right ${
+                  <div className={`text-[10px] mt-2 text-right ${
                     message.role === 'user' 
                       ? 'text-white/70' 
                       : 'text-gray-400 dark:text-gray-500'
@@ -244,7 +242,7 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
               </div>
             ))}
             {isLoading && (
-              <div className="flex justify-start">
+              <div className="flex justify-start mb-2">
                 <Card className="max-w-[80%] p-3 bg-white dark:bg-gray-700 dark:text-cream-100">
                   <div className="flex items-center space-x-2">
                     <Loader2 className="h-4 w-4 animate-spin text-leaf-500" />
@@ -259,7 +257,7 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
         
         {selectedUploadImage && (
           <div className="px-3 pt-2">
-            <div className="relative rounded-md overflow-hidden h-20 bg-gray-100 dark:bg-gray-700">
+            <div className="relative rounded-md overflow-hidden h-24 bg-gray-100 dark:bg-gray-700">
               <img src={selectedUploadImage} alt="To upload" className="h-full w-auto object-cover mx-auto" />
               <Button 
                 variant="destructive" 
@@ -275,7 +273,7 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
         
         <Separator className="my-0" />
         
-        <div className="p-3 space-y-2">
+        <div className="p-3">
           <div className="flex gap-2 items-end">
             <Textarea
               ref={textareaRef}
@@ -283,13 +281,13 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="min-h-[60px] resize-none dark:bg-gray-700 dark:text-white dark:border-gray-600 py-2 px-3"
+              className="min-h-[60px] max-h-[120px] resize-none dark:bg-gray-700 dark:text-white dark:border-gray-600 py-2 px-3"
             />
             <div className="flex flex-col gap-2">
               <Button
                 variant="outline"
                 size="icon"
-                className="h-[30px] w-[30px] dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 flex items-center justify-center"
+                className="h-10 w-10 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 flex items-center justify-center"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Image className="h-4 w-4" />
@@ -297,7 +295,7 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
               <Button
                 variant="outline"
                 size="icon"
-                className="h-[30px] w-[30px] bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700 dark:border-leaf-700 flex items-center justify-center"
+                className="h-10 w-10 bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700 dark:border-leaf-700 flex items-center justify-center"
                 onClick={() => handleSendMessage()}
                 disabled={isLoading || (!inputMessage && !selectedUploadImage)}
               >
@@ -312,8 +310,8 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
             ref={fileInputRef}
             onChange={handleImageUpload}
           />
-          <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-            You can upload images of plants for identification
+          <div className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+            Upload images of plants for identification
           </div>
         </div>
       </DialogContent>
