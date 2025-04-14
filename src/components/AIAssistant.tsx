@@ -12,7 +12,8 @@ import { Separator } from '@/components/ui/separator';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { sendMessageToGemini, getPlantAssistantSystemPrompt, GeminiMessage, GeminiPart } from '@/services/gemini-service';
+import { sendMessageToGemini, getPlantAssistantSystemPrompt, GeminiMessage, GeminiPart, processImageUrl } from '@/services/gemini-service';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AIAssistantProps {
   open: boolean;
@@ -37,6 +38,7 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isMobile = useIsMobile();
 
   const triggerHaptic = async (style: ImpactStyle = ImpactStyle.Medium) => {
     if (Capacitor.isNativePlatform()) {
@@ -89,11 +91,11 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
     }
     
     if (imageUrl) {
-      const base64Image = imageUrl.split(',')[1];
+      const processedImage = processImageUrl(imageUrl);
       parts.push({
         inlineData: {
           mimeType: 'image/jpeg',
-          data: base64Image
+          data: processedImage
         }
       });
     }
@@ -193,8 +195,8 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex flex-col h-[80vh] max-w-md p-0 gap-0 bg-white dark:bg-gray-800">
-        <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
+      <DialogContent className={`flex flex-col ${isMobile ? 'h-[95vh] max-w-[95vw]' : 'h-[80vh] max-w-md'} p-0 gap-0 bg-white dark:bg-gray-800`}>
+        <div className="flex justify-between items-center p-3 border-b dark:border-gray-700">
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8 bg-leaf-500/20">
               <AvatarImage src="/placeholder.svg" alt="ShrubAI" />
@@ -212,11 +214,11 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
           </Badge>
         </div>
         
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
+        <ScrollArea className="flex-1 p-3">
+          <div className="space-y-3">
             {messages.map(message => (
               <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <Card className={`max-w-[80%] p-3 ${
+                <Card className={`max-w-[85%] p-2.5 ${
                   message.role === 'user' 
                     ? 'bg-leaf-500 text-white' 
                     : message.role === 'system'
@@ -256,7 +258,7 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
         </ScrollArea>
         
         {selectedUploadImage && (
-          <div className="px-4 pt-2">
+          <div className="px-3 pt-2">
             <div className="relative rounded-md overflow-hidden h-20 bg-gray-100 dark:bg-gray-700">
               <img src={selectedUploadImage} alt="To upload" className="h-full w-auto object-cover mx-auto" />
               <Button 
@@ -273,21 +275,21 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
         
         <Separator className="my-0" />
         
-        <div className="p-4 space-y-2">
-          <div className="flex gap-2">
+        <div className="p-3 space-y-2">
+          <div className="flex gap-2 items-end">
             <Textarea
               ref={textareaRef}
               placeholder="Ask about plants or gardening..."
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="min-h-[60px] resize-none dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              className="min-h-[60px] resize-none dark:bg-gray-700 dark:text-white dark:border-gray-600 py-2 px-3"
             />
             <div className="flex flex-col gap-2">
               <Button
                 variant="outline"
                 size="icon"
-                className="h-[30px] dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600"
+                className="h-[30px] w-[30px] dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 flex items-center justify-center"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Image className="h-4 w-4" />
@@ -295,7 +297,7 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
               <Button
                 variant="outline"
                 size="icon"
-                className="h-[30px] bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700 dark:border-leaf-700"
+                className="h-[30px] w-[30px] bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700 dark:border-leaf-700 flex items-center justify-center"
                 onClick={() => handleSendMessage()}
                 disabled={isLoading || (!inputMessage && !selectedUploadImage)}
               >
