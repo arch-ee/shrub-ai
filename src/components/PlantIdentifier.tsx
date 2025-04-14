@@ -44,7 +44,23 @@ const SPLASH_TEXTS = [
   "plants know",
   "green thumb",
   "botanical magic",
-  "plant parenthood"
+  "plant parenthood",
+  "flower power",
+  "forest friend",
+  "garden guardian",
+  "nature knows best",
+  "petal pusher",
+  "soil scholar",
+  "bloom boss",
+  "seed whisperer",
+  "leaf lover",
+  "chloro-fill me in",
+  "stem stellar",
+  "flora facts",
+  "root revealer",
+  "vegetation station",
+  "sprout scout",
+  "plant pal"
 ];
 
 const PlantIdentifier = () => {
@@ -349,7 +365,7 @@ const PlantIdentifier = () => {
       <div className="w-full max-w-md space-y-4">
         <div className="text-center space-y-2 animate-fade-in">
           <Badge variant="subtle" className="mb-2 bg-cream-100 dark:bg-gray-800 dark:text-cream-100">shrubAI</Badge>
-          <h1 className="text-2xl font-light text-leaf-900 dark:text-cream-100">{splashText}</h1>
+          <h1 className="text-2xl font-light text-black dark:text-white">{splashText}</h1>
         </div>
 
         {showCamera ? (
@@ -371,7 +387,7 @@ const PlantIdentifier = () => {
                   </AspectRatio>
                 ) : (
                   <AspectRatio ratio={16/9} className="w-full rounded-lg bg-cream-50 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-leaf-200 dark:border-gray-600">
-                    <Sprout className="w-12 h-12 text-leaf-400 dark:text-leaf-300" />
+                    <Sprout className="w-12 h-12 text-black dark:text-white" />
                   </AspectRatio>
                 )}
               </div>
@@ -379,16 +395,22 @@ const PlantIdentifier = () => {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
-                  onClick={() => setShowCamera(true)}
+                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-white dark:border-gray-600"
+                  onClick={() => {
+                    setShowCamera(true);
+                    triggerHaptic(ImpactStyle.Light);
+                  }}
                 >
                   <Camera className="w-4 h-4 mr-2" />
                   camera
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
-                  onClick={() => document.getElementById('upload')?.click()}
+                  className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-white dark:border-gray-600"
+                  onClick={() => {
+                    document.getElementById('upload')?.click();
+                    triggerHaptic(ImpactStyle.Light);
+                  }}
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   upload
@@ -398,7 +420,7 @@ const PlantIdentifier = () => {
               <Button 
                 onClick={identifyPlant}
                 disabled={isLoading || !selectedImage}
-                className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700"
+                className="w-full bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black"
               >
                 {isLoading ? "identifying..." : "identify plant"}
               </Button>
@@ -429,9 +451,12 @@ const PlantIdentifier = () => {
           variant="outline" 
           size="icon" 
           className="bg-white/50 hover:bg-white/80 dark:bg-gray-800/50 dark:hover:bg-gray-800/80 rounded-full shadow-md"
-          onClick={() => setShowDocs(true)}
+          onClick={() => {
+            setShowDocs(true);
+            triggerHaptic(ImpactStyle.Light);
+          }}
         >
-          <HelpCircle className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
+          <HelpCircle className="h-5 w-5 text-black dark:text-white" />
           <span className="sr-only">Documentation</span>
         </Button>
         
@@ -439,9 +464,12 @@ const PlantIdentifier = () => {
           variant="outline" 
           size="icon" 
           className="bg-white/50 hover:bg-white/80 dark:bg-gray-800/50 dark:hover:bg-gray-800/80 rounded-full shadow-md"
-          onClick={() => setShowAgent(true)}
+          onClick={() => {
+            setShowAgent(true);
+            triggerHaptic(ImpactStyle.Light);
+          }}
         >
-          <MessageCircle className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
+          <MessageCircle className="h-5 w-5 text-black dark:text-white" />
           <span className="sr-only">AI Assistant</span>
         </Button>
       </div>
