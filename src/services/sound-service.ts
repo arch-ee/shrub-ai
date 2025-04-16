@@ -1,6 +1,6 @@
 
 import { Capacitor } from '@capacitor/core';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
 class SoundService {
   private clickSound: HTMLAudioElement | null = null;
@@ -41,15 +41,16 @@ class SoundService {
   
   async playSuccessSound() {
     if (Capacitor.isNativePlatform()) {
-      await Haptics.notification({ type: 'SUCCESS' });
+      await Haptics.notification({ type: NotificationType.Success });
     }
   }
   
   async playErrorSound() {
     if (Capacitor.isNativePlatform()) {
-      await Haptics.notification({ type: 'ERROR' });
+      await Haptics.notification({ type: NotificationType.Error });
     }
   }
 }
 
 export const soundService = new SoundService();
+
