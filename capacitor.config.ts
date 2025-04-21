@@ -20,24 +20,32 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3000,
+      launchShowDuration: 2000,
       launchAutoHide: true,
       backgroundColor: "#f8fafc",
       androidScaleType: "CENTER_CROP",
       splashImmersive: true,
       splashFullScreen: true,
       splashShowOnlyFirstTime: false,
-      // Add more splash texts
       androidSplashResourceName: "splash"
     },
     CapacitorHttp: {
       enabled: true
     },
     Haptics: {
-      selectionStarted: true
+      selectionStarted: true,
+      impactLightStyle: true,
+      notificationSuccess: true,
+      notificationWarning: true,
+      notificationError: true
     },
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"]
+    },
+    LocalNotifications: {
+      smallIcon: "ic_stat_icon_config_sample",
+      iconColor: "#488558",
+      sound: "beep.wav",
     },
     StatusBar: {
       style: "DARK",

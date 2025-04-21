@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 
 interface PlantInfo {
   name: string;
+  scientificName?: string;
   health: number;
   waterNeeds: string;
   sunlight: string;
@@ -20,13 +21,28 @@ interface PlantInfo {
   category?: 'plant' | 'fruit' | 'berry' | 'fungi';
   nutritionalValue?: string;
   safeToTouch?: boolean;
+  // Advanced mode fields
+  soilType?: string;
+  growthStage?: string;
+  propagationMethod?: string;
+  commonDiseases?: string;
+  careInstructions?: string;
+  seasonalChanges?: string;
+  pruningNeeds?: string;
+  fertilizationSchedule?: string;
+  expectedLifespan?: string;
+  nativeRegion?: string;
+  indoorOrOutdoor?: string;
+  companionPlants?: string;
+  pests?: string;
 }
 
 interface PlantInfoCardProps {
   plantInfo: PlantInfo;
+  isAdvancedMode?: boolean;
 }
 
-const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
+const PlantInfoCard = ({ plantInfo, isAdvancedMode = false }: PlantInfoCardProps) => {
   const getHealthDescription = (health: number, category?: string) => {
     if (category === 'fruit' || category === 'berry') {
       if (health >= 90) return 'Perfect ripeness 🍎';
@@ -121,13 +137,62 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
     return plantInfo.name;
   };
 
+  const renderAdvancedInfo = () => {
+    if (!isAdvancedMode || isUnknown) return null;
+    
+    const advancedFields = [
+      { label: 'Scientific Name', value: plantInfo.scientificName, emoji: '🔬' },
+      { label: 'Soil Type', value: plantInfo.soilType, emoji: '🏞️' },
+      { label: 'Growth Stage', value: plantInfo.growthStage, emoji: '📏' },
+      { label: 'Propagation', value: plantInfo.propagationMethod, emoji: '🌱' },
+      { label: 'Common Diseases', value: plantInfo.commonDiseases, emoji: '🦠' },
+      { label: 'Care Instructions', value: plantInfo.careInstructions, emoji: '📝' },
+      { label: 'Seasonal Changes', value: plantInfo.seasonalChanges, emoji: '🍂' },
+      { label: 'Pruning Needs', value: plantInfo.pruningNeeds, emoji: '✂️' },
+      { label: 'Fertilization', value: plantInfo.fertilizationSchedule, emoji: '💩' },
+      { label: 'Lifespan', value: plantInfo.expectedLifespan, emoji: '⏳' },
+      { label: 'Native Region', value: plantInfo.nativeRegion, emoji: '🌍' },
+      { label: 'Best Environment', value: plantInfo.indoorOrOutdoor, emoji: '🏡' },
+      { label: 'Companion Plants', value: plantInfo.companionPlants, emoji: '👯' },
+      { label: 'Common Pests', value: plantInfo.pests, emoji: '🐛' }
+    ];
+    
+    const availableFields = advancedFields.filter(field => field.value);
+    
+    if (availableFields.length === 0) return null;
+    
+    return (
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <h3 className="font-medium text-leaf-800 dark:text-leaf-300 mb-3">Advanced Information</h3>
+        <div className="space-y-3">
+          {availableFields.map((field, index) => (
+            <div key={index} className="flex items-start">
+              <span className="mr-2">{field.emoji}</span>
+              <div>
+                <span className="font-medium text-sm">{field.label}:</span>{' '}
+                <span className="text-sm text-leaf-600 dark:text-leaf-200">{field.value}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-fade-in dark:bg-gray-800/60 dark:border-gray-700 dark:text-cream-50">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-medium text-leaf-900 dark:text-cream-100">
-            {getCardTitle()}
-          </h2>
+          <div>
+            <h2 className="text-xl font-medium text-leaf-900 dark:text-cream-100">
+              {getCardTitle()}
+            </h2>
+            {plantInfo.scientificName && (
+              <p className="text-sm italic text-gray-600 dark:text-gray-400">
+                {plantInfo.scientificName}
+              </p>
+            )}
+          </div>
           {!isUnknown && (
             <span className="text-2xl">
               {isFungi ? '🍄' : 
@@ -266,6 +331,9 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
                   </div>
                 </div>
               )}
+              
+              {/* Advanced information section */}
+              {renderAdvancedInfo()}
             </>
           )}
         </div>

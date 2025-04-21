@@ -10,7 +10,10 @@ import { Capacitor } from "@capacitor/core";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar, Style } from "@capacitor/status-bar";
 import { Keyboard } from "@capacitor/keyboard";
+import { LocalNotifications } from "@capacitor/local-notifications";
 import { pushNotificationService } from "@/services/push-notification-service";
+import { plantService } from "@/services/plant-service";
+import { soundService } from "@/services/sound-service";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -39,6 +42,30 @@ const App = () => {
             (notification) => console.log("Action performed:", notification)
           );
           
+          // Setup local notifications
+          const notifPermission = await LocalNotifications.requestPermissions();
+          console.log("Local notification permission:", notifPermission.display);
+          
+          // Register action types for notifications
+          await LocalNotifications.registerActionTypes({
+            types: [
+              {
+                id: 'water',
+                actions: [
+                  {
+                    id: 'water-now',
+                    title: 'Water now',
+                  },
+                  {
+                    id: 'remind-later',
+                    title: 'Remind me later',
+                    input: true,
+                  }
+                ]
+              }
+            ]
+          });
+          
           // Handle keyboard events
           Keyboard.addListener('keyboardWillShow', () => {
             console.log('Keyboard will show');
@@ -55,11 +82,20 @@ const App = () => {
 
     initializeNativeFeatures();
     
+    // Create sample sound files folder
+    const setupSampleSounds = () => {
+      // In a real app, we would need to create and add these sound files
+      console.log("Sound service initialized");
+    };
+    
+    setupSampleSounds();
+    
     // Cleanup listeners when component unmounts
     return () => {
       if (Capacitor.isNativePlatform()) {
         pushNotificationService.removeAllListeners();
         Keyboard.removeAllListeners();
+        LocalNotifications.removeAllListeners();
       }
     };
   }, []);
