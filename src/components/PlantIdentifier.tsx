@@ -388,149 +388,122 @@ const PlantIdentifier = () => {
           <h1 className="text-2xl font-light text-leaf-900 dark:text-cream-100">{splashText}</h1>
         </div>
         
-        <Tabs 
-          defaultValue="identify" 
-          value={activeTab} 
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger 
-              value="identify" 
-              onClick={() => {
-                plantService.triggerHaptic(ImpactStyle.Light);
-                soundService.playClickSoft();
-              }}
-            >
-              Identify
-            </TabsTrigger>
-            <TabsTrigger 
-              value="collection" 
-              onClick={() => {
-                plantService.triggerHaptic(ImpactStyle.Light);
-                soundService.playClickSoft();
-              }}
-            >
-              My Plants
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="identify" className="mt-4 space-y-4">
-            {showCamera ? (
-              <CameraView
-                onCapture={handleCameraCapture}
-                onCancel={handleCameraCancel}
-              />
-            ) : (
-              <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-scale-in dark:bg-gray-800/60 dark:border-gray-700 dark:shadow-gray-900/30">
-                <div className="space-y-4">
-                  <div className="flex justify-center">
-                    {selectedImage ? (
-                      <AspectRatio ratio={isMobile ? 3/4 : 16/9} className="relative w-full rounded-lg overflow-hidden">
-                        <img
-                          src={selectedImage}
-                          alt="Selected plant"
-                          className="w-full h-full object-cover"
-                        />
-                      </AspectRatio>
-                    ) : (
-                      <AspectRatio ratio={isMobile ? 3/4 : 16/9} className="w-full rounded-lg bg-cream-50 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-leaf-200 dark:border-gray-600">
-                        <Sprout className="w-12 h-12 text-leaf-400 dark:text-leaf-300" />
-                      </AspectRatio>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
-                      onClick={() => {
-                        setShowCamera(true);
-                        plantService.triggerHaptic();
-                        soundService.playClick();
-                      }}
-                    >
-                      <Camera className="w-4 h-4 mr-2" />
-                      camera
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
-                      onClick={() => {
-                        document.getElementById('upload')?.click();
-                        plantService.triggerHaptic();
-                        soundService.playClick();
-                      }}
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      upload
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center space-x-2 justify-end px-1">
-                    <Switch
-                      id="advanced-mode"
-                      checked={advancedMode}
-                      onCheckedChange={(checked) => {
-                        setAdvancedMode(checked);
-                        plantService.triggerHaptic(ImpactStyle.Light);
-                        soundService.playClickSoft();
-                      }}
-                    />
-                    <Label htmlFor="advanced-mode" className="text-sm">Advanced mode</Label>
-                  </div>
-
-                  <Button 
-                    onClick={identifyPlant}
-                    disabled={isLoading || !selectedImage}
-                    className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700"
-                  >
-                    {isLoading ? "identifying..." : "identify plant"}
-                  </Button>
-
-                  <input
-                    type="file"
-                    id="upload"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
+        <div className="space-y-4">
+          {showCamera ? (
+            <CameraView
+              onCapture={handleCameraCapture}
+              onCancel={handleCameraCancel}
+            />
+          ) : (
+            <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-scale-in dark:bg-gray-800/60 dark:border-gray-700 dark:shadow-gray-900/30">
+              <div className="space-y-4">
+                <div className="flex justify-center">
+                  {selectedImage ? (
+                    <AspectRatio ratio={isMobile ? 3/4 : 16/9} className="relative w-full rounded-lg overflow-hidden">
+                      <img
+                        src={selectedImage}
+                        alt="Selected plant"
+                        className="w-full h-full object-cover"
+                      />
+                    </AspectRatio>
+                  ) : (
+                    <AspectRatio ratio={isMobile ? 3/4 : 16/9} className="w-full rounded-lg bg-cream-50 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-leaf-200 dark:border-gray-600">
+                      <Sprout className="w-12 h-12 text-leaf-400 dark:text-leaf-300" />
+                    </AspectRatio>
+                  )}
                 </div>
-              </Card>
-            )}
 
-            {plantInfo && (
-              <>
-                <PlantInfoCard plantInfo={plantInfo} isAdvancedMode={advancedMode} />
-                
-                {plantInfo.name && plantInfo.name !== "Unknown plant" && (
-                  <>
-                    <div className="flex justify-end mb-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80"
-                        onClick={() => {
-                          plantService.triggerHaptic();
-                          soundService.playClick();
-                          setShowSavePlantDialog(true);
-                        }}
-                      >
-                        <Plus size={16} />
-                        <span>Save to My Plants</span>
-                      </Button>
-                    </div>
-                    <OnlineStores stores={generateOnlineStores(plantInfo.name)} />
-                  </>
-                )}
-              </>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="collection" className="mt-4 space-y-4">
-            <MyPlants />
-          </TabsContent>
-        </Tabs>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
+                    onClick={() => {
+                      setShowCamera(true);
+                      plantService.triggerHaptic();
+                      soundService.playClick();
+                    }}
+                  >
+                    <Camera className="w-4 h-4 mr-2" />
+                    camera
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
+                    onClick={() => {
+                      document.getElementById('upload')?.click();
+                      plantService.triggerHaptic();
+                      soundService.playClick();
+                    }}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    upload
+                  </Button>
+                </div>
+
+                <div className="flex items-center space-x-2 justify-end px-1">
+                  <Switch
+                    id="advanced-mode"
+                    checked={advancedMode}
+                    onCheckedChange={(checked) => {
+                      setAdvancedMode(checked);
+                      plantService.triggerHaptic(ImpactStyle.Light);
+                      soundService.playClickSoft();
+                    }}
+                  />
+                  <Label htmlFor="advanced-mode" className="text-sm">Advanced mode</Label>
+                </div>
+
+                <Button 
+                  onClick={identifyPlant}
+                  disabled={isLoading || !selectedImage}
+                  className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700"
+                >
+                  {isLoading ? "identifying..." : "identify plant"}
+                </Button>
+
+                <input
+                  type="file"
+                  id="upload"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </div>
+            </Card>
+          )}
+
+          {plantInfo && (
+            <>
+              <PlantInfoCard plantInfo={plantInfo} isAdvancedMode={advancedMode} />
+              
+              {plantInfo.name && plantInfo.name !== "Unknown plant" && (
+                <>
+                  <div className="flex justify-end mb-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80"
+                      onClick={() => {
+                        plantService.triggerHaptic();
+                        soundService.playClick();
+                        setShowSavePlantDialog(true);
+                      }}
+                    >
+                      <Plus size={16} />
+                      <span>Save to My Plants</span>
+                    </Button>
+                  </div>
+                  <OnlineStores stores={generateOnlineStores(plantInfo.name)} />
+                </>
+              )}
+            </>
+          )}
+        </div>
+
+        <div className="mt-8 space-y-4">
+          <h2 className="text-xl font-medium text-leaf-900 dark:text-cream-100">My Plants</h2>
+          <MyPlants />
+        </div>
       </div>
       
       <div className="fixed bottom-4 left-4 flex flex-col gap-2">

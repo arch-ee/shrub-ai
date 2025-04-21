@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Heart, Droplet, Sun, ThermometerSun, AlertTriangle, Check, X, Apple } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -289,7 +288,7 @@ const PlantInfoCard = ({ plantInfo, isAdvancedMode = false }: PlantInfoCardProps
                 )}
               </div>
               
-              {(plantInfo.diagnosis || plantInfo.hasRottenLeaves) && (
+              {(plantInfo.diagnosis || plantInfo.hasRottenLeaves) ? (
                 <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-100 dark:border-red-800/30">
                   <h3 className="font-medium text-red-700 dark:text-red-300 mb-1">Diagnosis 🔍</h3>
                   <p className="text-sm text-red-600 dark:text-red-200">
@@ -302,6 +301,13 @@ const PlantInfoCard = ({ plantInfo, isAdvancedMode = false }: PlantInfoCardProps
                       <p className="text-sm text-green-600 dark:text-green-200">{plantInfo.cure}</p>
                     </div>
                   )}
+                </div>
+              ) : plantInfo.health >= 70 && (
+                <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-100 dark:border-green-800/30">
+                  <h3 className="font-medium text-green-700 dark:text-green-300 mb-1">Plant Status 🌿</h3>
+                  <p className="text-sm text-green-600 dark:text-green-200">
+                    This plant appears to be healthy and well-maintained!
+                  </p>
                 </div>
               )}
               
