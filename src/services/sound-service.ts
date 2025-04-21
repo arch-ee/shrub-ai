@@ -37,25 +37,25 @@ class SoundService {
   }
 
   playClick() {
-    if (!this.isSoundEnabled || !this.clickSound || !Capacitor.isNativePlatform()) return;
+    if (!this.isSoundEnabled || !this.clickSound) return;
     this.clickSound.currentTime = 0;
     this.clickSound.play().catch(e => console.error("Error playing click sound:", e));
   }
 
   playClickSoft() {
-    if (!this.isSoundEnabled || !this.clickSoftSound || !Capacitor.isNativePlatform()) return;
+    if (!this.isSoundEnabled || !this.clickSoftSound) return;
     this.clickSoftSound.currentTime = 0;
     this.clickSoftSound.play().catch(e => console.error("Error playing soft click sound:", e));
   }
 
   playSuccess() {
-    if (!this.isSoundEnabled || !this.successSound || !Capacitor.isNativePlatform()) return;
+    if (!this.isSoundEnabled || !this.successSound) return;
     this.successSound.currentTime = 0;
     this.successSound.play().catch(e => console.error("Error playing success sound:", e));
   }
 
   playError() {
-    if (!this.isSoundEnabled || !this.errorSound || !Capacitor.isNativePlatform()) return;
+    if (!this.isSoundEnabled || !this.errorSound) return;
     this.errorSound.currentTime = 0;
     this.errorSound.play().catch(e => console.error("Error playing error sound:", e));
   }

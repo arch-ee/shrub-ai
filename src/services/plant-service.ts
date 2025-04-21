@@ -1,6 +1,6 @@
 
 import { Capacitor } from '@capacitor/core';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { LocalNotifications, ScheduleOptions } from '@capacitor/local-notifications';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -37,19 +37,19 @@ class PlantService {
 
   async triggerHapticSuccess() {
     if (Capacitor.isNativePlatform()) {
-      await Haptics.notification({ type: 'SUCCESS' });
+      await Haptics.notification({ type: NotificationType.Success });
     }
   }
 
   async triggerHapticWarning() {
     if (Capacitor.isNativePlatform()) {
-      await Haptics.notification({ type: 'WARNING' });
+      await Haptics.notification({ type: NotificationType.Warning });
     }
   }
 
   async triggerHapticError() {
     if (Capacitor.isNativePlatform()) {
-      await Haptics.notification({ type: 'ERROR' });
+      await Haptics.notification({ type: NotificationType.Error });
     }
   }
 
@@ -219,6 +219,14 @@ class PlantService {
     }
     
     return 7; // Default to weekly
+  }
+
+  private savePlantsToStorage() {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.plants));
+    } catch (error) {
+      console.error('Failed to save plants to storage', error);
+    }
   }
 }
 

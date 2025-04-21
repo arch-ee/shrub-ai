@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Camera, Upload, Sprout, HelpCircle, MessageCircle, Plus, Leaf, BookOpen } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -79,15 +78,12 @@ const PlantIdentifier = () => {
     const randomIndex = Math.floor(Math.random() * SPLASH_TEXTS.length);
     setSplashText(SPLASH_TEXTS[randomIndex]);
     
-    // Setup notification permission
     if (Capacitor.isNativePlatform()) {
       LocalNotifications.requestPermissions();
       
-      // Set up plant notification listeners
       plantService.setupNotificationListeners((plantId) => {
         console.log(`Notification clicked for plant: ${plantId}`);
         setActiveTab("collection");
-        // Could add more logic to focus on the specific plant
       });
     }
   }, []);
@@ -191,7 +187,7 @@ const PlantIdentifier = () => {
             temperature: 0.2,
             topK: 32,
             topP: 1,
-            maxOutputTokens: 2048, // Increased for advanced mode
+            maxOutputTokens: 2048,
           }
         })
       });
@@ -256,7 +252,6 @@ const PlantIdentifier = () => {
             category: category,
             nutritionalValue: plantData.nutritionalValue,
             safeToTouch: plantData.safeToTouch !== undefined ? plantData.safeToTouch : true,
-            // Advanced mode fields can be added here
           });
           
           toast({

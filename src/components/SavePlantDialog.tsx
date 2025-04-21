@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Slider } from '@/components/ui/slider';
 import { plantService } from '@/services/plant-service';
 import { soundService } from '@/services/sound-service';
 import { useToast } from '@/hooks/use-toast';
+import { ImpactStyle } from '@capacitor/haptics';
 
 interface PlantInfo {
   name: string;
@@ -32,7 +32,6 @@ const SavePlantDialog = ({ open, onOpenChange, plantInfo, plantImage }: SavePlan
   const [notes, setNotes] = useState('');
   const { toast } = useToast();
 
-  // Reset form when dialog opens with new plant
   React.useEffect(() => {
     if (open && plantInfo) {
       setPlantName(plantInfo.name);
