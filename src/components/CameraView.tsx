@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { X, Camera, ArrowLeft, FlipCameraIcon } from 'lucide-react';
+import { X, Camera, ArrowLeft, FlipHorizontal } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { plantService } from '@/services/plant-service';
 import { soundService } from '@/services/sound-service';
@@ -147,7 +147,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel }) => {
           className="text-white hover:bg-white/20 rounded-full"
           onClick={toggleCamera}
         >
-          <FlipCameraIcon size={24} />
+          <FlipHorizontal size={24} />
         </Button>
       </div>
     </Card>

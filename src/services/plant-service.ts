@@ -220,14 +220,6 @@ class PlantService {
     
     return 7; // Default to weekly
   }
-
-  private savePlantsToStorage() {
-    try {
-      localStorage.setItem(this.storageKey, JSON.stringify(this.plants));
-    } catch (error) {
-      console.error('Failed to save plants to storage', error);
-    }
-  }
 }
 
 export const plantService = new PlantService();
