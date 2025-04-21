@@ -27,16 +27,7 @@ const config: CapacitorConfig = {
       splashImmersive: true,
       splashFullScreen: true,
       splashShowOnlyFirstTime: false,
-      // Add more splash texts for kid-friendly experience
-      splashScreenText: [
-        "Let's explore the plant world!",
-        "Ready to find some cool plants?",
-        "Plants are amazing friends!",
-        "Time to go on a plant adventure!",
-        "Did you know plants can talk to each other?",
-        "Plants have superpowers too!",
-        "Let's be plant detectives today!"
-      ],
+      // Add more splash texts
       androidSplashResourceName: "splash"
     },
     CapacitorHttp: {

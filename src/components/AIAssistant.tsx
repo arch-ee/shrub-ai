@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { X, Send, Leaf, Image, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -206,7 +207,9 @@ const AIAssistant = ({ open, onOpenChange, apiKey, selectedImage }: AIAssistantP
               <p className="text-xs text-gray-500 dark:text-gray-400">powered by Gemini</p>
             </div>
           </div>
-          {/* Badge has been removed from here */}
+          <Badge variant="outline" className="h-6 bg-green-500/10 text-green-600 dark:bg-green-900/20 dark:text-green-400">
+            AI Chat
+          </Badge>
         </div>
         
         <ScrollArea className="flex-1 p-3 overflow-y-auto">
