@@ -440,7 +440,7 @@ const PlantIdentifier = () => {
                   </Button>
                 </div>
 
-                <div className="flex items-center space-x-2 justify-end px-1">
+                <div className="flex items-center justify-center gap-2 pt-2">
                   <Switch
                     id="advanced-mode"
                     checked={advancedMode}
@@ -450,7 +450,7 @@ const PlantIdentifier = () => {
                       soundService.playClickSoft();
                     }}
                   />
-                  <Label htmlFor="advanced-mode" className="text-sm">Advanced mode</Label>
+                  <Label htmlFor="advanced-mode" className="text-sm text-muted-foreground">Advanced mode</Label>
                 </div>
 
                 <Button 
