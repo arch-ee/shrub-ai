@@ -5,9 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import CameraView from './CameraView';
 import PlantInfoCard from './PlantInfoCard';
 import ThemeToggle from './ThemeToggle';
@@ -21,7 +18,6 @@ import { soundService } from '@/services/sound-service';
 import { ImpactStyle } from '@capacitor/haptics';
 import SavePlantDialog from './SavePlantDialog';
 import MyPlants from './MyPlants';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LocalNotifications } from '@capacitor/local-notifications';
 
 interface PlantInfo {
@@ -66,8 +62,6 @@ const PlantIdentifier = () => {
   const [splashText, setSplashText] = useState('');
   const [showDocs, setShowDocs] = useState(false);
   const [showAgent, setShowAgent] = useState(false);
-  const [advancedMode, setAdvancedMode] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("identify");
   const [showSavePlantDialog, setShowSavePlantDialog] = useState(false);
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -115,11 +109,7 @@ const PlantIdentifier = () => {
   };
 
   const getCategoryPrompt = () => {
-    if (advancedMode) {
-      return "Identify this plant, fruit, berry or fungi from the image. Provide a comprehensive and detailed analysis of its health condition, growth stage, and environmental requirements. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName (Latin name), health (as a percentage from 0-100 based on visible condition), waterNeeds (detailed watering instructions), sunlight (specific light requirements), temperature (specific temperature range), soilType (recommended soil composition), growthStage (seedling, juvenile, mature, flowering, etc), propagationMethod (how to propagate), commonDiseases (list of diseases this species is susceptible to), hasRottenLeaves (boolean), diagnosis (detailed analysis of any visible issues), cure (comprehensive treatment recommendations including specific products if applicable), isEdible (boolean), toxicity (none, mild, moderate, severe), warning (detailed symptoms or harm if consumed or touched), category ('plant', 'fruit', 'berry', or 'fungi'), nutritionalValue (detailed if edible), safeToTouch (boolean), careInstructions (special care tips), seasonalChanges (how plant behaves through seasons), pruningNeeds (if and how to prune), fertilizationSchedule (recommended feeding), expectedLifespan, nativeRegion (geographic origin), indoorOrOutdoor (best growing environment), companionPlants (plants that grow well with it), pests (common pests that affect it). Include as much detail as possible in each field. If you cannot identify the item, set name to null. No explanations, just the JSON.";
-    } else {
-      return "Identify this plant, fruit, berry or fungi from the image. Analyze its health condition. Indicate if it's edible or harmful/poisonous. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations), isEdible (boolean), toxicity (none, mild, moderate, severe), warning (symptoms or harm if consumed or touched), category (one of: 'plant', 'fruit', 'berry', 'fungi'), nutritionalValue (if edible), safeToTouch (boolean). If you cannot identify the item, set name to null. No explanations, just the JSON.";
-    }
+    return "Identify this plant, fruit, berry or fungi from the image. Analyze its health condition. Indicate if it's edible or harmful/poisonous. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations), isEdible (boolean), toxicity (none, mild, moderate, severe), warning (symptoms or harm if consumed or touched), category (one of: 'plant', 'fruit', 'berry', 'fungi'), nutritionalValue (if edible), safeToTouch (boolean). If you cannot identify the item, set name to null. No explanations, just the JSON.";
   };
 
   const shouldShowToxicityNotification = (plantData: any): boolean => {
@@ -440,19 +430,6 @@ const PlantIdentifier = () => {
                   </Button>
                 </div>
 
-                <div className="flex items-center justify-center gap-2 pt-2">
-                  <Switch
-                    id="advanced-mode"
-                    checked={advancedMode}
-                    onCheckedChange={(checked) => {
-                      setAdvancedMode(checked);
-                      plantService.triggerHaptic(ImpactStyle.Light);
-                      soundService.playClickSoft();
-                    }}
-                  />
-                  <Label htmlFor="advanced-mode" className="text-sm text-muted-foreground">Advanced mode</Label>
-                </div>
-
                 <Button 
                   onClick={identifyPlant}
                   disabled={isLoading || !selectedImage}
@@ -474,7 +451,7 @@ const PlantIdentifier = () => {
 
           {plantInfo && (
             <>
-              <PlantInfoCard plantInfo={plantInfo} isAdvancedMode={advancedMode} />
+              <PlantInfoCard plantInfo={plantInfo} isAdvancedMode={false} />
               
               {plantInfo.name && plantInfo.name !== "Unknown plant" && (
                 <>
@@ -576,10 +553,6 @@ const PlantIdentifier = () => {
             <div>
               <h3 className="font-medium mb-1">Identification</h3>
               <p>After selecting an image, click "identify plant" to analyze it. The app will identify the plant and provide information about it.</p>
-            </div>
-            <div>
-              <h3 className="font-medium mb-1">Advanced Mode</h3>
-              <p>Toggle Advanced Mode to get more detailed analysis and care instructions for your plants.</p>
             </div>
             <div>
               <h3 className="font-medium mb-1">Saving Plants</h3>
