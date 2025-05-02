@@ -1,9 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Camera, Upload, Sprout, HelpCircle, MessageCircle, Plus, Leaf } from 'lucide-react';
+import { Camera, Upload, Sprout, HelpCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import CameraView from './CameraView';
@@ -11,14 +10,11 @@ import PlantInfoCard from './PlantInfoCard';
 import ThemeToggle from './ThemeToggle';
 import OnlineStores from './store-locator/OnlineStores';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import AIAssistant from './AIAssistant';
 import { Capacitor } from '@capacitor/core';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { plantService } from '@/services/plant-service';
 import { soundService } from '@/services/sound-service';
 import { ImpactStyle } from '@capacitor/haptics';
-import SavePlantDialog from './SavePlantDialog';
-import MyPlants from './MyPlants';
 import { LocalNotifications } from '@capacitor/local-notifications';
 
 interface PlantInfo {
@@ -37,50 +33,37 @@ interface PlantInfo {
   category?: 'plant' | 'fruit' | 'berry' | 'fungi';
   nutritionalValue?: string;
   safeToTouch?: boolean;
+  
+  // Additional info fields
+  soilType?: string;
+  growthStage?: string;
+  propagationMethod?: string;
+  commonDiseases?: string;
+  careInstructions?: string;
+  seasonalChanges?: string;
+  pruningNeeds?: string;
+  fertilizationSchedule?: string;
+  expectedLifespan?: string;
+  nativeRegion?: string;
+  indoorOrOutdoor?: string;
+  companionPlants?: string;
+  pests?: string;
 }
-
-const SPLASH_TEXTS = [
-  "plants gone",
-  "leaf me",
-  "botanical detective",
-  "plant whisperer",
-  "photosynthesis chill",
-  "root knowledge",
-  "cultivating wisdom",
-  "botanical brilliance",
-  "grow die",
-  "plants know",
-  "green thumb",
-  "botanical magic",
-  "plant parenthood"
-];
 
 const PlantIdentifier = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [plantInfo, setPlantInfo] = useState<PlantInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
-  const [splashText, setSplashText] = useState('');
   const [showDocs, setShowDocs] = useState(false);
-  const [showAgent, setShowAgent] = useState(false);
-  const [showSavePlantDialog, setShowSavePlantDialog] = useState(false);
-  const [currentView, setCurrentView] = useState<'identify' | 'collection'>('identify');
   const isMobile = useIsMobile();
   const { toast } = useToast();
   
   const geminiApiKey = 'AIzaSyDskk1srl5d4hsWDhSvzZSVi1vezIkgaf8';
   
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * SPLASH_TEXTS.length);
-    setSplashText(SPLASH_TEXTS[randomIndex]);
-    
     if (Capacitor.isNativePlatform()) {
       LocalNotifications.requestPermissions();
-      
-      plantService.setupNotificationListeners((plantId) => {
-        console.log(`Notification clicked for plant: ${plantId}`);
-        setCurrentView("collection");
-      });
     }
   }, []);
 
@@ -111,7 +94,7 @@ const PlantIdentifier = () => {
   };
 
   const getCategoryPrompt = () => {
-    return "Identify this plant, fruit, berry or fungi from the image. Analyze its health condition. Indicate if it's edible or harmful/poisonous. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations), isEdible (boolean), toxicity (none, mild, moderate, severe), warning (symptoms or harm if consumed or touched), category (one of: 'plant', 'fruit', 'berry', 'fungi'), nutritionalValue (if edible), safeToTouch (boolean). If you cannot identify the item, set name to null. No explanations, just the JSON.";
+    return "Identify this plant, fruit, berry or fungi from the image. Analyze its health condition in detail. Indicate if it's edible or harmful/poisonous. You MUST respond with ONLY a valid JSON object containing these fields: name (common name), scientificName, health (as a percentage from 0-100 based on visible condition), waterNeeds, sunlight, temperature, hasRottenLeaves (boolean), diagnosis (if there are any issues), cure (treatment recommendations), isEdible (boolean), toxicity (none, mild, moderate, severe), warning (symptoms or harm if consumed or touched), category (one of: 'plant', 'fruit', 'berry', 'fungi'), nutritionalValue (if edible), safeToTouch (boolean), soilType, growthStage, propagationMethod, commonDiseases, careInstructions, seasonalChanges, pruningNeeds, fertilizationSchedule, expectedLifespan, nativeRegion, indoorOrOutdoor, companionPlants, pests. Add as much detail as possible for all fields. If you cannot identify the item, set name to null. No explanations, just the JSON.";
   };
 
   const shouldShowToxicityNotification = (plantData: any): boolean => {
@@ -179,7 +162,7 @@ const PlantIdentifier = () => {
             temperature: 0.2,
             topK: 32,
             topP: 1,
-            maxOutputTokens: 2048,
+            maxOutputTokens: 4096,
           }
         })
       });
@@ -244,6 +227,20 @@ const PlantIdentifier = () => {
             category: category,
             nutritionalValue: plantData.nutritionalValue,
             safeToTouch: plantData.safeToTouch !== undefined ? plantData.safeToTouch : true,
+            // Additional detailed info fields
+            soilType: plantData.soilType,
+            growthStage: plantData.growthStage,
+            propagationMethod: plantData.propagationMethod,
+            commonDiseases: plantData.commonDiseases,
+            careInstructions: plantData.careInstructions,
+            seasonalChanges: plantData.seasonalChanges,
+            pruningNeeds: plantData.pruningNeeds,
+            fertilizationSchedule: plantData.fertilizationSchedule,
+            expectedLifespan: plantData.expectedLifespan,
+            nativeRegion: plantData.nativeRegion,
+            indoorOrOutdoor: plantData.indoorOrOutdoor,
+            companionPlants: plantData.companionPlants,
+            pests: plantData.pests,
           });
           
           toast({
@@ -369,15 +366,14 @@ const PlantIdentifier = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream-50 to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center transition-colors duration-300">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
       
       <div className="w-full max-w-md space-y-4">
-        <div className="text-center space-y-2 animate-fade-in">
-          <Badge variant="subtle" className="mb-2 bg-cream-100 dark:bg-gray-800 dark:text-cream-100">shrubAI</Badge>
-          <h1 className="text-2xl font-light text-leaf-900 dark:text-cream-100">{splashText}</h1>
+        <div className="text-center space-y-2 animate-fade-in mt-8">
+          <h1 className="text-2xl font-medium text-leaf-900 dark:text-cream-100">your pocket botanist</h1>
         </div>
         
         <div className="space-y-4">
@@ -387,7 +383,7 @@ const PlantIdentifier = () => {
               onCancel={handleCameraCancel}
             />
           ) : (
-            <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-scale-in dark:bg-gray-800/60 dark:border-gray-700 dark:shadow-gray-900/30">
+            <Card className="p-6 backdrop-blur-0 bg-white/100 border-leaf-100 shadow-lg animate-scale-in dark:bg-gray-800 dark:border-gray-700 dark:shadow-gray-900/30">
               <div className="space-y-4">
                 <div className="flex justify-center">
                   {selectedImage ? (
@@ -408,7 +404,7 @@ const PlantIdentifier = () => {
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
-                    className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
+                    className="flex-1 bg-white hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
                     onClick={() => {
                       setShowCamera(true);
                       plantService.triggerHaptic();
@@ -420,7 +416,7 @@ const PlantIdentifier = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
+                    className="flex-1 bg-white hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
                     onClick={() => {
                       document.getElementById('upload')?.click();
                       plantService.triggerHaptic();
@@ -453,43 +449,21 @@ const PlantIdentifier = () => {
 
           {plantInfo && (
             <>
-              <PlantInfoCard plantInfo={plantInfo} isAdvancedMode={false} />
+              <PlantInfoCard plantInfo={plantInfo} />
               
               {plantInfo.name && plantInfo.name !== "Unknown plant" && (
-                <>
-                  <div className="flex justify-end mb-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-1 bg-white/50 hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80"
-                      onClick={() => {
-                        plantService.triggerHaptic();
-                        soundService.playClick();
-                        setShowSavePlantDialog(true);
-                      }}
-                    >
-                      <Plus size={16} />
-                      <span>Save to My Plants</span>
-                    </Button>
-                  </div>
-                  <OnlineStores stores={generateOnlineStores(plantInfo.name)} />
-                </>
+                <OnlineStores stores={generateOnlineStores(plantInfo.name)} />
               )}
             </>
           )}
         </div>
-
-        <div className="mt-8 space-y-4">
-          <h2 className="text-xl font-medium text-leaf-900 dark:text-cream-100">My Plants</h2>
-          <MyPlants />
-        </div>
       </div>
       
-      <div className="fixed bottom-4 left-4 flex flex-col gap-2">
+      <div className="fixed bottom-4 left-4">
         <Button 
           variant="outline" 
           size="icon" 
-          className="bg-white/50 hover:bg-white/80 dark:bg-gray-800/50 dark:hover:bg-gray-800/80 rounded-full shadow-md"
+          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md"
           onClick={() => {
             setShowDocs(true);
             plantService.triggerHaptic();
@@ -499,54 +473,29 @@ const PlantIdentifier = () => {
           <HelpCircle className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
           <span className="sr-only">Documentation</span>
         </Button>
-        
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="bg-white/50 hover:bg-white/80 dark:bg-gray-800/50 dark:hover:bg-gray-800/80 rounded-full shadow-md"
-          onClick={() => {
-            setShowAgent(true);
-            plantService.triggerHaptic();
-            soundService.playClick();
-          }}
-        >
-          <MessageCircle className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
-          <span className="sr-only">AI Assistant</span>
-        </Button>
-        
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="bg-white/50 hover:bg-white/80 dark:bg-gray-800/50 dark:hover:bg-gray-800/80 rounded-full shadow-md"
-          onClick={() => {
-            setCurrentView(currentView === "identify" ? "collection" : "identify");
-            plantService.triggerHaptic();
-            soundService.playClick();
-          }}
-        >
-          {currentView === "identify" ? (
-            <Leaf className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
-          ) : (
-            <Leaf className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
-          )}
-          <span className="sr-only">
-            {currentView === "identify" ? "My Plants" : "Identify"}
-          </span>
-        </Button>
       </div>
       
       <Dialog open={showDocs} onOpenChange={setShowDocs}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>shrubAI Documentation</DialogTitle>
+            <DialogTitle>Plant Identification Help</DialogTitle>
             <DialogDescription>
-              How to use the plant identification app
+              How to use your pocket botanist
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <div>
               <h3 className="font-medium mb-1">Taking a Photo</h3>
-              <p>Click the camera button to use your device's camera to take a clear picture of your plant.</p>
+              <p>Click the camera button to use your device's camera. The app supports up to 4K resolution and 5x zoom. Use the zoom controls or mouse wheel to adjust.</p>
+            </div>
+            <div>
+              <h3 className="font-medium mb-1">Camera Frame Colors</h3>
+              <p>The frame borders change color to help you take better photos:</p>
+              <ul className="list-disc pl-5 mt-1 space-y-1">
+                <li><span className="text-green-500 font-medium">Green</span> - Good lighting and framing</li>
+                <li><span className="text-yellow-500 font-medium">Yellow</span> - Adjust position for better results</li>
+                <li><span className="text-red-500 font-medium">Red</span> - Poor lighting or framing</li>
+              </ul>
             </div>
             <div>
               <h3 className="font-medium mb-1">Uploading an Image</h3>
@@ -554,37 +503,15 @@ const PlantIdentifier = () => {
             </div>
             <div>
               <h3 className="font-medium mb-1">Identification</h3>
-              <p>After selecting an image, click "identify plant" to analyze it. The app will identify the plant and provide information about it.</p>
-            </div>
-            <div>
-              <h3 className="font-medium mb-1">Saving Plants</h3>
-              <p>After identifying a plant, click "Save to My Plants" to add it to your collection and set up watering reminders.</p>
+              <p>After selecting an image, click "identify plant" to analyze it. The app will identify the plant and provide detailed information about it.</p>
             </div>
             <div>
               <h3 className="font-medium mb-1">Plant Information</h3>
               <p>The app will show details about the plant, including its name, care requirements, and whether it's safe or toxic.</p>
             </div>
-            <div>
-              <h3 className="font-medium mb-1">AI Assistant</h3>
-              <p>Click the chat button at the bottom-left to chat with our AI assistant. You can upload photos directly to the chat to get more detailed information.</p>
-            </div>
           </div>
         </DialogContent>
       </Dialog>
-      
-      <SavePlantDialog 
-        open={showSavePlantDialog}
-        onOpenChange={setShowSavePlantDialog}
-        plantInfo={plantInfo}
-        plantImage={selectedImage}
-      />
-      
-      <AIAssistant 
-        open={showAgent} 
-        onOpenChange={setShowAgent} 
-        apiKey={geminiApiKey}
-        selectedImage={showAgent && selectedImage ? selectedImage : null}
-      />
     </div>
   );
 };

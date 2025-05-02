@@ -1,5 +1,6 @@
-import React from 'react';
-import { Heart, Droplet, Sun, ThermometerSun, AlertTriangle, Check, X, Apple } from 'lucide-react';
+
+import React, { useState } from 'react';
+import { Heart, Droplet, Sun, ThermometerSun, AlertTriangle, Check, X, Apple, Home, Globe, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +21,8 @@ interface PlantInfo {
   category?: 'plant' | 'fruit' | 'berry' | 'fungi';
   nutritionalValue?: string;
   safeToTouch?: boolean;
-  // Advanced mode fields
+  
+  // Extended information fields
   soilType?: string;
   growthStage?: string;
   propagationMethod?: string;
@@ -38,10 +40,11 @@ interface PlantInfo {
 
 interface PlantInfoCardProps {
   plantInfo: PlantInfo;
-  isAdvancedMode?: boolean;
 }
 
-const PlantInfoCard = ({ plantInfo, isAdvancedMode = false }: PlantInfoCardProps) => {
+const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
+  const [showDetails, setShowDetails] = useState(false);
+  
   const getHealthDescription = (health: number, category?: string) => {
     if (category === 'fruit' || category === 'berry') {
       if (health >= 90) return 'Perfect ripeness 🍎';
@@ -136,50 +139,57 @@ const PlantInfoCard = ({ plantInfo, isAdvancedMode = false }: PlantInfoCardProps
     return plantInfo.name;
   };
 
-  const renderAdvancedInfo = () => {
-    if (!isAdvancedMode || isUnknown) return null;
-    
-    const advancedFields = [
-      { label: 'Scientific Name', value: plantInfo.scientificName, emoji: '🔬' },
-      { label: 'Soil Type', value: plantInfo.soilType, emoji: '🏞️' },
-      { label: 'Growth Stage', value: plantInfo.growthStage, emoji: '📏' },
-      { label: 'Propagation', value: plantInfo.propagationMethod, emoji: '🌱' },
-      { label: 'Common Diseases', value: plantInfo.commonDiseases, emoji: '🦠' },
-      { label: 'Care Instructions', value: plantInfo.careInstructions, emoji: '📝' },
-      { label: 'Seasonal Changes', value: plantInfo.seasonalChanges, emoji: '🍂' },
-      { label: 'Pruning Needs', value: plantInfo.pruningNeeds, emoji: '✂️' },
-      { label: 'Fertilization', value: plantInfo.fertilizationSchedule, emoji: '💩' },
-      { label: 'Lifespan', value: plantInfo.expectedLifespan, emoji: '⏳' },
-      { label: 'Native Region', value: plantInfo.nativeRegion, emoji: '🌍' },
-      { label: 'Best Environment', value: plantInfo.indoorOrOutdoor, emoji: '🏡' },
-      { label: 'Companion Plants', value: plantInfo.companionPlants, emoji: '👯' },
-      { label: 'Common Pests', value: plantInfo.pests, emoji: '🐛' }
+  const renderDetailSection = () => {
+    const details = [
+      { field: 'soilType', label: 'Soil Type', icon: <div className="w-5 h-5 mr-2 flex items-center justify-center text-leaf-600">🏞️</div> },
+      { field: 'growthStage', label: 'Growth Stage', icon: <div className="w-5 h-5 mr-2 flex items-center justify-center text-leaf-600">📈</div> },
+      { field: 'propagationMethod', label: 'Propagation', icon: <div className="w-5 h-5 mr-2 flex items-center justify-center text-leaf-600">🌱</div> },
+      { field: 'commonDiseases', label: 'Common Diseases', icon: <div className="w-5 h-5 mr-2 flex items-center justify-center text-leaf-600">🦠</div> },
+      { field: 'careInstructions', label: 'Care Instructions', icon: <div className="w-5 h-5 mr-2 flex items-center justify-center text-leaf-600">📝</div> },
+      { field: 'seasonalChanges', label: 'Seasonal Changes', icon: <div className="w-5 h-5 mr-2 flex items-center justify-center text-leaf-600">🍂</div> },
+      { field: 'pruningNeeds', label: 'Pruning Needs', icon: <div className="w-5 h-5 mr-2 flex items-center justify-center text-leaf-600">✂️</div> },
+      { field: 'fertilizationSchedule', label: 'Fertilization', icon: <div className="w-5 h-5 mr-2 flex items-center justify-center text-leaf-600">🌿</div> },
+      { field: 'expectedLifespan', label: 'Lifespan', icon: <div className="w-5 h-5 mr-2 flex items-center justify-center text-leaf-600">⏳</div> },
+      { field: 'nativeRegion', label: 'Native Region', icon: <Globe className="w-5 h-5 mr-2 text-leaf-600 dark:text-leaf-400" /> },
+      { field: 'indoorOrOutdoor', label: 'Environment', icon: <Home className="w-5 h-5 mr-2 text-leaf-600 dark:text-leaf-400" /> },
+      { field: 'companionPlants', label: 'Companion Plants', icon: <div className="w-5 h-5 mr-2 flex items-center justify-center text-leaf-600">🌺</div> },
+      { field: 'pests', label: 'Common Pests', icon: <div className="w-5 h-5 mr-2 flex items-center justify-center text-leaf-600">🐛</div> },
     ];
-    
-    const availableFields = advancedFields.filter(field => field.value);
-    
-    if (availableFields.length === 0) return null;
-    
+
+    const availableDetails = details.filter(d => 
+      plantInfo[d.field as keyof PlantInfo] && 
+      typeof plantInfo[d.field as keyof PlantInfo] === 'string' &&
+      (plantInfo[d.field as keyof PlantInfo] as string).trim() !== ''
+    );
+
+    if (availableDetails.length === 0) {
+      return null;
+    }
+
     return (
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <h3 className="font-medium text-leaf-800 dark:text-leaf-300 mb-3">Advanced Information</h3>
-        <div className="space-y-3">
-          {availableFields.map((field, index) => (
-            <div key={index} className="flex items-start">
-              <span className="mr-2">{field.emoji}</span>
-              <div>
-                <span className="font-medium text-sm">{field.label}:</span>{' '}
-                <span className="text-sm text-leaf-600 dark:text-leaf-200">{field.value}</span>
-              </div>
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+        <h3 className="font-medium text-leaf-800 dark:text-leaf-300 flex items-center">
+          <Info className="w-4 h-4 mr-2" />
+          Detailed Information
+        </h3>
+        
+        {availableDetails.map((detail, index) => (
+          <div key={index} className="flex items-start">
+            {detail.icon}
+            <div>
+              <span className="font-medium text-sm text-gray-700 dark:text-gray-300">{detail.label}:</span>{' '}
+              <span className="text-sm text-leaf-600 dark:text-leaf-200">
+                {plantInfo[detail.field as keyof PlantInfo] as string}
+              </span>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     );
   };
 
   return (
-    <Card className="p-6 backdrop-blur-sm bg-white/80 border-leaf-200 shadow-lg animate-fade-in dark:bg-gray-800/60 dark:border-gray-700 dark:text-cream-50">
+    <Card className="p-6 bg-white border-leaf-100 shadow-lg animate-fade-in dark:bg-gray-800 dark:border-gray-700 dark:text-cream-50 overflow-hidden">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -338,8 +348,21 @@ const PlantInfoCard = ({ plantInfo, isAdvancedMode = false }: PlantInfoCardProps
                 </div>
               )}
               
-              {/* Advanced information section */}
-              {renderAdvancedInfo()}
+              {/* Show/hide more details button */}
+              {!isUnknown && (
+                <div 
+                  className="flex items-center justify-center py-2 mt-2 text-center cursor-pointer text-leaf-600 dark:text-leaf-400 hover:text-leaf-800 dark:hover:text-leaf-300 transition-colors"
+                  onClick={() => setShowDetails(!showDetails)}
+                >
+                  <span className="text-sm font-medium mr-1">
+                    {showDetails ? 'Show Less' : 'Show More Details'}
+                  </span>
+                  {showDetails ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </div>
+              )}
+              
+              {/* Extra details section */}
+              {showDetails && renderDetailSection()}
             </>
           )}
         </div>
