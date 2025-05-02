@@ -55,10 +55,10 @@ const CameraOverlay = ({ diagnosisStatus = null, showTips = true }: CameraOverla
   return (
     <div className="absolute inset-0 pointer-events-none">
       {/* Corner markers - made larger */}
-      <div className={`absolute top-6 left-6 w-16 h-16 border-l-3 border-t-3 ${getBorderColor()} transition-colors duration-300`}></div>
-      <div className={`absolute top-6 right-6 w-16 h-16 border-r-3 border-t-3 ${getBorderColor()} transition-colors duration-300`}></div>
-      <div className={`absolute bottom-6 left-6 w-16 h-16 border-l-3 border-b-3 ${getBorderColor()} transition-colors duration-300`}></div>
-      <div className={`absolute bottom-6 right-6 w-16 h-16 border-r-3 border-b-3 ${getBorderColor()} transition-colors duration-300`}></div>
+      <div className={`absolute top-6 left-6 w-16 h-16 border-l-4 border-t-4 ${getBorderColor()}`}></div>
+      <div className={`absolute top-6 right-6 w-16 h-16 border-r-4 border-t-4 ${getBorderColor()}`}></div>
+      <div className={`absolute bottom-6 left-6 w-16 h-16 border-l-4 border-b-4 ${getBorderColor()}`}></div>
+      <div className={`absolute bottom-6 right-6 w-16 h-16 border-r-4 border-b-4 ${getBorderColor()}`}></div>
       
       {/* Status indicator */}
       {diagnosisStatus && (
