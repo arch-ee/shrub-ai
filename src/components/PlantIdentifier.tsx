@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Camera, Upload, Sprout, HelpCircle, MessageCircle, Plus, Leaf, BookOpen } from 'lucide-react';
+import { Camera, Upload, Sprout, HelpCircle, MessageCircle, Plus, Leaf } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -63,6 +64,7 @@ const PlantIdentifier = () => {
   const [showDocs, setShowDocs] = useState(false);
   const [showAgent, setShowAgent] = useState(false);
   const [showSavePlantDialog, setShowSavePlantDialog] = useState(false);
+  const [currentView, setCurrentView] = useState<'identify' | 'collection'>('identify');
   const isMobile = useIsMobile();
   const { toast } = useToast();
   
@@ -77,7 +79,7 @@ const PlantIdentifier = () => {
       
       plantService.setupNotificationListeners((plantId) => {
         console.log(`Notification clicked for plant: ${plantId}`);
-        setActiveTab("collection");
+        setCurrentView("collection");
       });
     }
   }, []);
@@ -517,18 +519,18 @@ const PlantIdentifier = () => {
           size="icon" 
           className="bg-white/50 hover:bg-white/80 dark:bg-gray-800/50 dark:hover:bg-gray-800/80 rounded-full shadow-md"
           onClick={() => {
-            setActiveTab(activeTab === "identify" ? "collection" : "identify");
+            setCurrentView(currentView === "identify" ? "collection" : "identify");
             plantService.triggerHaptic();
             soundService.playClick();
           }}
         >
-          {activeTab === "identify" ? (
+          {currentView === "identify" ? (
             <Leaf className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
           ) : (
-            <BookOpen className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
+            <Leaf className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
           )}
           <span className="sr-only">
-            {activeTab === "identify" ? "My Plants" : "Identify"}
+            {currentView === "identify" ? "My Plants" : "Identify"}
           </span>
         </Button>
       </div>
