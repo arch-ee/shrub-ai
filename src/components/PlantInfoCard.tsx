@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Heart, Droplet, Sun, ThermometerSun, AlertTriangle, Check, X, Apple, Home, Globe, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -219,7 +218,7 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
             </div>
           ) : (
             <>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-sm text-leaf-600 dark:text-cream-300">
                   <div className="flex items-center">
                     <Heart className="w-4 h-4 mr-2 text-leaf-500 dark:text-leaf-400" />
@@ -227,13 +226,13 @@ const PlantInfoCard = ({ plantInfo }: PlantInfoCardProps) => {
                   </div>
                   <span className="font-medium">{plantInfo.health}%</span>
                 </div>
-                <Progress 
-                  value={plantInfo.health} 
-                  className="h-2 bg-leaf-100 dark:bg-leaf-900" 
-                  style={{
-                    "--progress-background": getHealthColor(plantInfo.health)
-                  } as React.CSSProperties}
-                />
+                <div className="relative h-2.5 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700">
+                  <Progress 
+                    value={plantInfo.health} 
+                    className="h-full rounded-full transition-all ease-in-out duration-500 bg-gradient-to-r from-green-300 to-green-500 dark:from-green-600 dark:to-green-400"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent dark:from-white/10"></div>
+                </div>
               </div>
               
               {/* Display plant-specific information for plants only */}
