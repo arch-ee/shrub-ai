@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Camera, Upload, Sprout, HelpCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -86,6 +85,13 @@ const PlantIdentifier = () => {
     plantService.triggerHaptic(ImpactStyle.Light);
     soundService.playClick();
   };
+  
+  const handleAutoCaptureAndIdentify = (imageSrc: string) => {
+    // Set the image first
+    setSelectedImage(imageSrc);
+    // Then start the identification process
+    identifyPlantWithImage(imageSrc);
+  };
 
   const handleCameraCancel = () => {
     setShowCamera(false);
@@ -118,8 +124,8 @@ const PlantIdentifier = () => {
     );
   };
 
-  const identifyPlant = async () => {
-    if (!selectedImage) {
+  const identifyPlantWithImage = async (imageSrc: string) => {
+    if (!imageSrc) {
       toast({
         title: "no image selected",
         description: "please take or upload a photo first",
@@ -135,7 +141,7 @@ const PlantIdentifier = () => {
     soundService.playClick();
     
     try {
-      const base64Image = selectedImage.split(',')[1];
+      const base64Image = imageSrc.split(',')[1];
       
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
         method: 'POST',
@@ -325,6 +331,21 @@ const PlantIdentifier = () => {
       soundService.playError();
     } finally {
       setIsLoading(false);
+      setShowCamera(false); // Make sure camera is closed after identification
+    }
+  };
+
+  const identifyPlant = () => {
+    if (selectedImage) {
+      identifyPlantWithImage(selectedImage);
+    } else {
+      toast({
+        title: "no image selected",
+        description: "please take or upload a photo first",
+        variant: "destructive",
+      });
+      plantService.triggerHaptic(ImpactStyle.Medium);
+      soundService.playError();
     }
   };
 
@@ -381,23 +402,24 @@ const PlantIdentifier = () => {
             <CameraView
               onCapture={handleCameraCapture}
               onCancel={handleCameraCancel}
+              onAutoIdentify={handleAutoCaptureAndIdentify}
             />
           ) : (
             <Card className="p-6 backdrop-blur-0 bg-white/100 border-leaf-100 shadow-lg animate-scale-in dark:bg-gray-800 dark:border-gray-700 dark:shadow-gray-900/30">
               <div className="space-y-4">
                 <div className="flex justify-center">
                   {selectedImage ? (
-                    <AspectRatio ratio={isMobile ? 3/4 : 16/9} className="relative w-full rounded-lg overflow-hidden">
+                    <div className="aspect-[3/4] relative w-full rounded-lg overflow-hidden"> {/* Changed to portrait aspect ratio */}
                       <img
                         src={selectedImage}
                         alt="Selected plant"
                         className="w-full h-full object-cover"
                       />
-                    </AspectRatio>
+                    </div>
                   ) : (
-                    <AspectRatio ratio={isMobile ? 3/4 : 16/9} className="w-full rounded-lg bg-cream-50 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-leaf-200 dark:border-gray-600">
+                    <div className="aspect-[3/4] w-full rounded-lg bg-cream-50 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-leaf-200 dark:border-gray-600"> {/* Changed to portrait aspect ratio */}
                       <Sprout className="w-12 h-12 text-leaf-400 dark:text-leaf-300" />
-                    </AspectRatio>
+                    </div>
                   )}
                 </div>
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -11,9 +12,10 @@ import CameraOverlay from './CameraOverlay';
 interface CameraViewProps {
   onCapture: (imageSrc: string) => void;
   onCancel: () => void;
+  onAutoIdentify: (imageSrc: string) => void; // Added new prop for auto identification
 }
 
-const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel }) => {
+const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIdentify }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -50,7 +52,9 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel }) => {
           const capabilities = videoTrack.getCapabilities();
           // Check if zoom is available without directly accessing the property
           if (capabilities && 'zoom' in capabilities) {
-            setMaxZoom(capabilities['zoom']?.max || 5);
+            if (capabilities.zoom && typeof capabilities.zoom === 'object' && 'max' in capabilities.zoom) {
+              setMaxZoom(capabilities.zoom.max as number || 5);
+            }
             try {
               // Apply zoom constraint if supported using the bracket notation
               const trackSettings = videoTrack.getSettings();
@@ -129,6 +133,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel }) => {
       
       const imageData = canvas.toDataURL('image/jpeg', 0.95); // Higher quality
       onCapture(imageData);
+      onAutoIdentify(imageData); // Auto-identify the plant right away
     }
     
     setIsCapturing(false);
@@ -187,7 +192,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel }) => {
 
   return (
     <Card className="relative overflow-hidden bg-black">
-      <div className="aspect-[4/5] relative"> {/* Changed from aspect-ratio-4/3 to aspect-[4/5] for bigger frame */}
+      <div className="aspect-[3/4] relative"> {/* Changed to more portrait-oriented aspect ratio */}
         <video 
           ref={videoRef} 
           className="w-full h-full object-cover"
@@ -197,7 +202,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel }) => {
           onWheel={handleZoomWheel}
         />
         <canvas ref={canvasRef} className="hidden" />
-        <CameraOverlay diagnosisStatus={diagnosisStatus} />
+        <CameraOverlay diagnosisStatus={diagnosisStatus} showTips={false} /> {/* Added showTips prop */}
       </div>
       
       <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
