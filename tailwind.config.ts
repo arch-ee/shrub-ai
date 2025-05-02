@@ -19,6 +19,10 @@ export default {
       }
     },
     extend: {
+      fontFamily: {
+        sans: ['Futura', 'system-ui', 'sans-serif'],
+        futura: ['Futura', 'system-ui', 'sans-serif'],
+      },
       colors: {
         leaf: {
           50: '#F2FCE2',

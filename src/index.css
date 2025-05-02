@@ -1,3 +1,6 @@
+
+@import url('https://fonts.cdnfonts.com/css/futura-pt');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -92,10 +95,37 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border font-futura;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-futura;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-futura font-medium tracking-tight;
+  }
+  
+  button, a {
+    @apply font-futura;
+  }
+}
+
+/* Add custom border widths for camera overlay */
+@layer utilities {
+  .border-l-3 {
+    border-left-width: 3px;
+  }
+  
+  .border-r-3 {
+    border-right-width: 3px;
+  }
+  
+  .border-t-3 {
+    border-top-width: 3px;
+  }
+  
+  .border-b-3 {
+    border-bottom-width: 3px;
   }
 }

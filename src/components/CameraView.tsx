@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -34,9 +33,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel }) => {
             facingMode: facingMode,
             width: { ideal: 3840 },    // 4K
             height: { ideal: 2160 },   // 4K
-            advanced: [
-              { zoom: zoomLevel }
-            ]
+            // Remove the 'zoom' property from MediaTrackConstraints
           }
         };
 
@@ -51,14 +48,19 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel }) => {
         const videoTrack = mediaStream.getVideoTracks()[0];
         if (videoTrack) {
           const capabilities = videoTrack.getCapabilities();
-          if (capabilities.zoom) {
-            setMaxZoom(capabilities.zoom.max || 5);
+          // Check if zoom is available without directly accessing the property
+          if (capabilities && 'zoom' in capabilities) {
+            setMaxZoom(capabilities['zoom']?.max || 5);
             try {
-              // Apply zoom constraint if supported
+              // Apply zoom constraint if supported using the bracket notation
               const trackSettings = videoTrack.getSettings();
               if (trackSettings && videoTrack.applyConstraints) {
                 await videoTrack.applyConstraints({ 
-                  advanced: [{ zoom: zoomLevel }] 
+                  // Use bracket notation for advanced constraints with custom properties
+                  advanced: [{
+                    // This is a workaround for TypeScript
+                    [`zoom`]: zoomLevel
+                  }] as any
                 });
               }
             } catch (err) {
@@ -154,8 +156,11 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel }) => {
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack && videoTrack.applyConstraints) {
         try {
+          // Use bracket notation and 'as any' to work around TypeScript constraints
           videoTrack.applyConstraints({ 
-            advanced: [{ zoom: zoomLevel }] 
+            advanced: [{
+              [`zoom`]: zoomLevel
+            }] as any
           }).catch(err => console.warn("Couldn't apply zoom:", err));
         } catch (err) {
           console.warn("Error applying zoom constraint:", err);
@@ -182,7 +187,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel }) => {
 
   return (
     <Card className="relative overflow-hidden bg-black">
-      <div className="aspect-ratio-4/3 relative">
+      <div className="aspect-[4/5] relative"> {/* Changed from aspect-ratio-4/3 to aspect-[4/5] for bigger frame */}
         <video 
           ref={videoRef} 
           className="w-full h-full object-cover"
