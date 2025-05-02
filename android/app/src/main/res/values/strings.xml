@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PlantApp</string>
+    <string name="title_activity_main">PlantApp</string>
+    <string name="package_name">app.lovable.5513d79477c644378bea89583ccaeb73</string>
+    <string name="custom_url_scheme">app.lovable.5513d79477c644378bea89583ccaeb73</string>
+</resources>
