@@ -89,7 +89,6 @@ class PushNotificationService {
     }
     
     // This would normally need a plugin like @capacitor/local-notifications
-    // But we're just demonstrating the concept
     console.log('Would send local notification:', { title, body });
   }
 }

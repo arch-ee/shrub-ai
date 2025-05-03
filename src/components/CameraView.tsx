@@ -12,7 +12,7 @@ import CameraOverlay from './CameraOverlay';
 interface CameraViewProps {
   onCapture: (imageSrc: string) => void;
   onCancel: () => void;
-  onAutoIdentify: (imageSrc: string) => void; // Added new prop for auto identification
+  onAutoIdentify: (imageSrc: string) => void;
 }
 
 const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIdentify }) => {
@@ -35,7 +35,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
             facingMode: facingMode,
             width: { ideal: 3840 },    // 4K
             height: { ideal: 2160 },   // 4K
-            // Remove the 'zoom' property from MediaTrackConstraints
           }
         };
 
@@ -50,7 +49,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
         const videoTrack = mediaStream.getVideoTracks()[0];
         if (videoTrack) {
           const capabilities = videoTrack.getCapabilities();
-          // Check if zoom is available without directly accessing the property
+          // Check if zoom is available
           if (capabilities && 'zoom' in capabilities) {
             if (capabilities.zoom && typeof capabilities.zoom === 'object' && 'max' in capabilities.zoom) {
               setMaxZoom(capabilities.zoom.max as number || 5);
@@ -95,11 +94,10 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [facingMode, zoomLevel, isMobile]);
+  }, [facingMode, zoomLevel]);
 
   const startFrameAnalysis = () => {
     // This simulates analyzing camera frame quality
-    // In a real app, you'd use image processing to analyze brightness, contrast, etc.
     const interval = setInterval(() => {
       const statuses: ('good' | 'warning' | 'bad')[] = ['good', 'warning', 'bad'];
       // For demo, we'll randomly change states with a bias toward "good"
@@ -192,7 +190,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
 
   return (
     <Card className="relative overflow-hidden bg-black">
-      <div className="aspect-[3/4] relative"> {/* Changed to more portrait-oriented aspect ratio */}
+      <div className="aspect-[3/4] relative">
         <video 
           ref={videoRef} 
           className="w-full h-full object-cover"
@@ -202,7 +200,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
           onWheel={handleZoomWheel}
         />
         <canvas ref={canvasRef} className="hidden" />
-        <CameraOverlay diagnosisStatus={diagnosisStatus} showTips={false} /> {/* Added showTips prop */}
+        <CameraOverlay diagnosisStatus={diagnosisStatus} showTips={false} />
       </div>
       
       <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent">

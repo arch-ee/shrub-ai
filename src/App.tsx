@@ -28,7 +28,7 @@ const App = () => {
           // Hide splash screen after app is ready
           await SplashScreen.hide();
           
-          // Set status bar style - fixed to use the correct enum value
+          // Set status bar style
           await StatusBar.setStyle({ style: Style.Dark });
           
           // Initialize push notifications
