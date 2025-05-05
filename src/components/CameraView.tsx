@@ -7,6 +7,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { plantService } from '@/services/plant-service';
 import { soundService } from '@/services/sound-service';
 import { ImpactStyle } from '@capacitor/haptics';
+import { Capacitor } from '@capacitor/core';
 import CameraOverlay from './CameraOverlay';
 
 interface CameraViewProps {
@@ -26,6 +27,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
   const [maxZoom, setMaxZoom] = useState(5);
   const [diagnosisStatus, setDiagnosisStatus] = useState<'good' | 'warning' | 'bad' | null>(null);
   const isMobile = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
 
   useEffect(() => {
     const enableCamera = async () => {
@@ -59,9 +61,8 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
               const trackSettings = videoTrack.getSettings();
               if (trackSettings && videoTrack.applyConstraints) {
                 await videoTrack.applyConstraints({ 
-                  // Use bracket notation for advanced constraints with custom properties
+                  // Use advanced constraints for zoom
                   advanced: [{
-                    // This is a workaround for TypeScript
                     [`zoom`]: zoomLevel
                   }] as any
                 });
@@ -116,8 +117,11 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
     if (!videoRef.current || !canvasRef.current || isCapturing) return;
     
     setIsCapturing(true);
-    plantService.triggerHaptic(ImpactStyle.Medium);
-    soundService.playClick();
+    
+    if (isNative) {
+      plantService.triggerHaptic(ImpactStyle.Medium);
+      soundService.playClick();
+    }
     
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -138,14 +142,18 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
   };
 
   const toggleCamera = async () => {
-    plantService.triggerHaptic(ImpactStyle.Light);
-    soundService.playClickSoft();
+    if (isNative) {
+      plantService.triggerHaptic(ImpactStyle.Light);
+      soundService.playClickSoft();
+    }
     setFacingMode(facingMode === 'environment' ? 'user' : 'environment');
   };
   
   const adjustZoom = (direction: 'in' | 'out') => {
-    plantService.triggerHaptic(ImpactStyle.Light);
-    soundService.playClickSoft();
+    if (isNative) {
+      plantService.triggerHaptic(ImpactStyle.Light);
+      soundService.playClickSoft();
+    }
     
     const step = 0.25;
     if (direction === 'in' && zoomLevel < maxZoom) {
@@ -210,8 +218,10 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
             size="icon"
             className="text-white hover:bg-white/20 rounded-full transition-colors"
             onClick={() => {
-              plantService.triggerHaptic();
-              soundService.playClickSoft();
+              if (isNative) {
+                plantService.triggerHaptic();
+                soundService.playClickSoft();
+              }
               onCancel();
             }}
           >

@@ -1,6 +1,7 @@
 
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 export interface PushNotificationToken {
   value: string;
@@ -26,6 +27,7 @@ class PushNotificationService {
       if (permissionStatus.receive === 'granted') {
         // Register with the push notification service
         await PushNotifications.register();
+        console.log('Push notifications registered successfully');
       } else {
         console.log('Push notification permission denied');
       }
@@ -81,15 +83,32 @@ class PushNotificationService {
     PushNotifications.removeAllListeners();
   }
 
-  // Send a local test notification (useful for development)
+  // Send a local test notification
   async sendLocalTestNotification(title: string, body: string): Promise<void> {
     if (!Capacitor.isNativePlatform()) {
       console.log('Local notifications not available in browser');
       return;
     }
     
-    // This would normally need a plugin like @capacitor/local-notifications
-    console.log('Would send local notification:', { title, body });
+    try {
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            title: title,
+            body: body,
+            id: Math.floor(Math.random() * 10000),
+            schedule: { at: new Date(Date.now() + 1000) },
+            sound: 'beep.wav',
+            attachments: null,
+            actionTypeId: '',
+            extra: null
+          }
+        ]
+      });
+      console.log('Local notification scheduled');
+    } catch (error) {
+      console.error('Error scheduling local notification', error);
+    }
   }
 }
 

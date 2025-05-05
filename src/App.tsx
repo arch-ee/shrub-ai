@@ -25,11 +25,16 @@ const App = () => {
     const initializeNativeFeatures = async () => {
       if (Capacitor.isNativePlatform()) {
         try {
+          console.log("Running on native platform:", Capacitor.getPlatform());
+          
           // Hide splash screen after app is ready
           await SplashScreen.hide();
           
           // Set status bar style
           await StatusBar.setStyle({ style: Style.Dark });
+          if (Capacitor.getPlatform() === 'android') {
+            StatusBar.setBackgroundColor({ color: '#f8fafc' });
+          }
           
           // Initialize push notifications
           await pushNotificationService.register();
@@ -74,9 +79,20 @@ const App = () => {
           Keyboard.addListener('keyboardDidHide', () => {
             console.log('Keyboard did hide');
           });
+          
+          // Test local notification
+          setTimeout(() => {
+            pushNotificationService.sendLocalTestNotification(
+              "Welcome to PlantApp", 
+              "Your plant identification app is ready to use!"
+            );
+          }, 5000);
+          
         } catch (error) {
           console.error("Error initializing native features:", error);
         }
+      } else {
+        console.log("Running in browser environment");
       }
     };
 
@@ -84,7 +100,6 @@ const App = () => {
     
     // Create sample sound files folder
     const setupSampleSounds = () => {
-      // In a real app, we would need to create and add these sound files
       console.log("Sound service initialized");
     };
     

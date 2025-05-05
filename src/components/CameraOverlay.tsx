@@ -70,6 +70,15 @@ const CameraOverlay = ({ diagnosisStatus = null, showTips = true }: CameraOverla
           </div>
         </div>
       )}
+      
+      {/* Show tips if enabled */}
+      {showTips && (
+        <div className="absolute bottom-24 left-0 right-0 text-center">
+          <div className="bg-black/50 px-4 py-2 mx-auto inline-block rounded-lg">
+            <p className="text-white text-sm">{tips[currentTip]}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
