@@ -1,4 +1,4 @@
-package app.lovable.5513d79477c644378bea89583ccaeb73;
+package app.lovable.shrubAI;
 
 import com.getcapacitor.BridgeActivity;
 
