@@ -1,9 +1,8 @@
-
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.5513d79477c644378bea89583ccaeb73',
-  appName: 'PlantApp',
+  appId: 'app.archie.shrubAI',
+  appName: 'shrubAI',
   webDir: 'dist',
   bundledWebRuntime: false,
   android: {

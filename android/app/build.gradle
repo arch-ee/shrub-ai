@@ -1,11 +1,10 @@
-
 apply plugin: 'com.android.application'
 
 android {
-    namespace "app.lovable.shrubAI"
+    namespace "app.archie.shrubAI"
     compileSdkVersion 34
     defaultConfig {
-        applicationId "app.lovable.shrubAI"
+        applicationId "app.archie.shrubAI"
         minSdkVersion 30
         targetSdkVersion 34
         versionCode 1
