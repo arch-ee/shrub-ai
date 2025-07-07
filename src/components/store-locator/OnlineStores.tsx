@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ShoppingBag, ShoppingCart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -31,16 +30,15 @@ const OnlineStores: React.FC<OnlineStoresProps> = ({ stores }) => {
         <ShoppingBag className="w-4 h-4 mr-2 text-leaf-500 dark:text-leaf-400" />
         Buy Online
       </h3>
-      <ScrollArea className="w-full">
-        <div className="flex pb-4 space-x-4">
+      <ScrollArea className="w-full max-h-96">
+        <div className="space-y-3 pr-4">
           {stores.map((store, index) => (
             <div 
               key={index} 
-              className="flex-shrink-0 w-64 p-4 bg-leaf-50 rounded-md shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800/60 dark:border-gray-700"
-              style={{ cursor: 'pointer' }}
+              className="p-4 bg-leaf-50 rounded-md shadow-sm hover:shadow-md transition-shadow dark:bg-gray-800/60 dark:border-gray-700 cursor-pointer"
               onClick={() => window.open(store.url, '_blank')}
             >
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start mb-2">
                 <p className="font-medium text-leaf-800 dark:text-cream-100">{store.name}</p>
                 {store.price && (
                   <Badge variant="outline" className="bg-cream-50 dark:bg-gray-700">
@@ -49,22 +47,20 @@ const OnlineStores: React.FC<OnlineStoresProps> = ({ stores }) => {
                 )}
               </div>
               {store.description && (
-                <p className="text-sm text-leaf-600 mt-2 mb-3 dark:text-cream-200">{store.description}</p>
+                <p className="text-sm text-leaf-600 mb-3 dark:text-cream-200">{store.description}</p>
               )}
-              <div className="mt-auto pt-3">
-                <Button 
-                  variant="default" 
-                  size="sm" 
-                  className="w-full bg-leaf-600 hover:bg-leaf-700 text-white flex items-center justify-center dark:bg-leaf-700 dark:hover:bg-leaf-800"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.open(store.url, '_blank');
-                  }}
-                >
-                  <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
-                  Shop on {store.name}
-                </Button>
-              </div>
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="w-full bg-leaf-600 hover:bg-leaf-700 text-white flex items-center justify-center dark:bg-leaf-700 dark:hover:bg-leaf-800"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(store.url, '_blank');
+                }}
+              >
+                <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
+                Shop on {store.name}
+              </Button>
             </div>
           ))}
         </div>

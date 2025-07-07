@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -6,6 +5,7 @@ import { Camera, ArrowLeft, FlipHorizontal, ZoomIn, ZoomOut } from 'lucide-react
 import { useIsMobile } from '@/hooks/use-mobile';
 import { plantService } from '@/services/plant-service';
 import { soundService } from '@/services/sound-service';
+import { settingsService } from '@/services/settings-service';
 import { ImpactStyle } from '@capacitor/haptics';
 import { Capacitor } from '@capacitor/core';
 import CameraOverlay from './CameraOverlay';
@@ -23,7 +23,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [isCapturing, setIsCapturing] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomLevel, setZoomLevel] = useState(settingsService.getCameraZoomLevel());
   const [maxZoom, setMaxZoom] = useState(5);
   const [diagnosisStatus, setDiagnosisStatus] = useState<'good' | 'warning' | 'bad' | null>(null);
   const isMobile = useIsMobile();
@@ -156,11 +156,16 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
     }
     
     const step = 0.25;
+    let newZoom = zoomLevel;
+    
     if (direction === 'in' && zoomLevel < maxZoom) {
-      setZoomLevel(Math.min(maxZoom, zoomLevel + step));
+      newZoom = Math.min(maxZoom, zoomLevel + step);
     } else if (direction === 'out' && zoomLevel > 1) {
-      setZoomLevel(Math.max(1, zoomLevel - step));
+      newZoom = Math.max(1, zoomLevel - step);
     }
+    
+    setZoomLevel(newZoom);
+    settingsService.setCameraZoomLevel(newZoom);
     
     // If stream exists, try to apply zoom directly to the track
     if (stream) {
@@ -170,7 +175,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
           // Use bracket notation and 'as any' to work around TypeScript constraints
           videoTrack.applyConstraints({ 
             advanced: [{
-              [`zoom`]: zoomLevel
+              [`zoom`]: newZoom
             }] as any
           }).catch(err => console.warn("Couldn't apply zoom:", err));
         } catch (err) {
@@ -191,7 +196,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
       <Card className="p-6 text-center">
         <h3 className="text-lg font-medium mb-4">Camera Access Required</h3>
         <p className="mb-4">Please allow camera access to use this feature.</p>
-        <Button onClick={onCancel}>Go Back</Button>
+        <Button onClick={onCancel} className="min-h-[37px]">Go Back</Button>
       </Card>
     );
   }
@@ -216,7 +221,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20 rounded-full transition-colors"
+            className="text-white hover:bg-white/20 rounded-full transition-colors min-h-[37px] min-w-[37px]"
             onClick={() => {
               if (isNative) {
                 plantService.triggerHaptic();
@@ -233,18 +238,18 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
               <Button 
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/20 rounded-full h-8 w-8 transition-colors"
+                className="text-white hover:bg-white/20 rounded-full h-8 w-8 transition-colors min-h-[37px] min-w-[37px]"
                 onClick={() => adjustZoom('out')}
               >
                 <ZoomOut size={18} />
               </Button>
-              <div className="text-white text-xs font-medium bg-black/40 rounded-full px-2 py-1 min-w-[60px] text-center">
+              <div className="text-white text-xs font-medium bg-black/40 rounded-full px-2 py-1 min-w-[60px] text-center min-h-[37px] flex items-center justify-center">
                 {zoomLevel.toFixed(1)}x
               </div>
               <Button 
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/20 rounded-full h-8 w-8 transition-colors"
+                className="text-white hover:bg-white/20 rounded-full h-8 w-8 transition-colors min-h-[37px] min-w-[37px]"
                 onClick={() => adjustZoom('in')}
               >
                 <ZoomIn size={18} />
@@ -253,7 +258,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
             
             <Button
               disabled={isCapturing}
-              className="bg-white hover:bg-white/90 rounded-full h-16 w-16 p-0 flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+              className="bg-white hover:bg-white/90 rounded-full h-16 w-16 p-0 flex items-center justify-center transition-transform hover:scale-105 active:scale-95 min-h-[37px] min-w-[37px]"
               onClick={handleCapture}
             >
               <Camera className="h-8 w-8 text-black" />
@@ -263,7 +268,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20 rounded-full transition-colors"
+            className="text-white hover:bg-white/20 rounded-full transition-colors min-h-[37px] min-w-[37px]"
             onClick={toggleCamera}
           >
             <FlipHorizontal size={24} />

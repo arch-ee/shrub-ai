@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -52,12 +51,12 @@ const NearbyStores: React.FC<NearbyStoresProps> = ({ stores, noStoresMessage }) 
         <MapPin className="w-4 h-4 mr-2 text-leaf-500" />
         Nearby Stores
       </h3>
-      <ScrollArea className="w-full">
-        <div className="flex pb-4 space-x-4">
+      <ScrollArea className="w-full max-h-96">
+        <div className="space-y-3 pr-4">
           {stores.map((store, index) => (
             <div 
               key={index} 
-              className="flex-shrink-0 w-64 p-4 bg-leaf-50 rounded-md shadow-sm hover:shadow-md transition-shadow"
+              className="p-4 bg-leaf-50 rounded-md shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex items-center">

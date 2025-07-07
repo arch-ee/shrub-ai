@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Upload, Sprout, HelpCircle } from 'lucide-react';
+import { Camera, Upload, Sprout, HelpCircle, Settings } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -8,11 +8,14 @@ import CameraView from './CameraView';
 import PlantInfoCard from './PlantInfoCard';
 import ThemeToggle from './ThemeToggle';
 import OnlineStores from './store-locator/OnlineStores';
+import SettingsDialog from './SettingsDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Capacitor } from '@capacitor/core';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { plantService } from '@/services/plant-service';
 import { soundService } from '@/services/sound-service';
+import { settingsService } from '@/services/settings-service';
 import { ImpactStyle } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
 
@@ -55,6 +58,7 @@ const PlantIdentifier = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const isMobile = useIsMobile();
   const { toast } = useToast();
   
@@ -64,6 +68,12 @@ const PlantIdentifier = () => {
     if (Capacitor.isNativePlatform()) {
       LocalNotifications.requestPermissions();
     }
+    
+    // Apply saved text size
+    const textSize = settingsService.getTextSize();
+    document.documentElement.className = document.documentElement.className
+      .replace(/text-size-\w+/g, '')
+      .trim() + ` text-size-${textSize}`;
   }, []);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -386,6 +396,8 @@ const PlantIdentifier = () => {
     ];
   };
 
+  const showShoppingOptions = settingsService.getShowShoppingOptions();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center transition-colors duration-300">
       <div className="absolute top-4 right-4">
@@ -426,7 +438,7 @@ const PlantIdentifier = () => {
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
-                    className="flex-1 bg-white hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
+                    className="flex-1 bg-white hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600 min-h-[37px]"
                     onClick={() => {
                       setShowCamera(true);
                       plantService.triggerHaptic();
@@ -438,7 +450,7 @@ const PlantIdentifier = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 bg-white hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600"
+                    className="flex-1 bg-white hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600 min-h-[37px]"
                     onClick={() => {
                       document.getElementById('upload')?.click();
                       plantService.triggerHaptic();
@@ -453,7 +465,7 @@ const PlantIdentifier = () => {
                 <Button 
                   onClick={identifyPlant}
                   disabled={isLoading || !selectedImage}
-                  className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700"
+                  className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700 min-h-[37px]"
                 >
                   {isLoading ? "identifying..." : "identify plant"}
                 </Button>
@@ -473,7 +485,7 @@ const PlantIdentifier = () => {
             <>
               <PlantInfoCard plantInfo={plantInfo} />
               
-              {plantInfo.name && plantInfo.name !== "Unknown plant" && (
+              {showShoppingOptions && plantInfo.name && plantInfo.name !== "Unknown plant" && (
                 <OnlineStores stores={generateOnlineStores(plantInfo.name)} />
               )}
             </>
@@ -481,11 +493,25 @@ const PlantIdentifier = () => {
         </div>
       </div>
       
-      <div className="fixed bottom-4 left-4">
+      <div className="fixed bottom-4 left-4 flex flex-col gap-2">
         <Button 
           variant="outline" 
           size="icon" 
-          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md"
+          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md min-h-[37px] min-w-[37px]"
+          onClick={() => {
+            setShowSettings(true);
+            plantService.triggerHaptic();
+            soundService.playClick();
+          }}
+        >
+          <Settings className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
+          <span className="sr-only">Settings</span>
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md min-h-[37px] min-w-[37px]"
           onClick={() => {
             setShowDocs(true);
             plantService.triggerHaptic();
@@ -497,41 +523,53 @@ const PlantIdentifier = () => {
         </Button>
       </div>
       
+      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
+      
       <Dialog open={showDocs} onOpenChange={setShowDocs}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Plant Identification Help</DialogTitle>
             <DialogDescription>
               How to use your pocket botanist
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 text-sm">
-            <div>
-              <h3 className="font-medium mb-1">Taking a Photo</h3>
-              <p>Click the camera button to use your device's camera. The app supports up to 4K resolution and 5x zoom. Use the zoom controls or mouse wheel to adjust.</p>
+          <ScrollArea className="flex-1 pr-4">
+            <div className="space-y-4 text-sm">
+              <div>
+                <h3 className="font-medium mb-1">Taking a Photo</h3>
+                <p>Click the camera button to use your device's camera. The app supports up to 4K resolution and 5x zoom. Use the zoom controls or mouse wheel to adjust.</p>
+              </div>
+              <div>
+                <h3 className="font-medium mb-1">Camera Frame Colors</h3>
+                <p>The frame borders change color to help you take better photos:</p>
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  <li><span className="text-green-500 font-medium">Green</span> - Good lighting and framing</li>
+                  <li><span className="text-yellow-500 font-medium">Yellow</span> - Adjust position for better results</li>
+                  <li><span className="text-red-500 font-medium">Red</span> - Poor lighting or framing</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-medium mb-1">Uploading an Image</h3>
+                <p>Click the upload button to select an image from your device's storage.</p>
+              </div>
+              <div>
+                <h3 className="font-medium mb-1">Identification</h3>
+                <p>After selecting an image, click "identify plant" to analyze it. The app will identify the plant and provide detailed information about it.</p>
+              </div>
+              <div>
+                <h3 className="font-medium mb-1">Plant Information</h3>
+                <p>The app will show details about the plant, including its name, care requirements, and whether it's safe or toxic.</p>
+              </div>
+              <div>
+                <h3 className="font-medium mb-1">Settings</h3>
+                <p>Use the settings button to customize text size, shopping options, camera zoom, and sound effects.</p>
+              </div>
+              <div>
+                <h3 className="font-medium mb-1">Shopping Options</h3>
+                <p>When enabled in settings, the app will show online stores where you can purchase identified plants.</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-medium mb-1">Camera Frame Colors</h3>
-              <p>The frame borders change color to help you take better photos:</p>
-              <ul className="list-disc pl-5 mt-1 space-y-1">
-                <li><span className="text-green-500 font-medium">Green</span> - Good lighting and framing</li>
-                <li><span className="text-yellow-500 font-medium">Yellow</span> - Adjust position for better results</li>
-                <li><span className="text-red-500 font-medium">Red</span> - Poor lighting or framing</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-medium mb-1">Uploading an Image</h3>
-              <p>Click the upload button to select an image from your device's storage.</p>
-            </div>
-            <div>
-              <h3 className="font-medium mb-1">Identification</h3>
-              <p>After selecting an image, click "identify plant" to analyze it. The app will identify the plant and provide detailed information about it.</p>
-            </div>
-            <div>
-              <h3 className="font-medium mb-1">Plant Information</h3>
-              <p>The app will show details about the plant, including its name, care requirements, and whether it's safe or toxic.</p>
-            </div>
-          </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>
