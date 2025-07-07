@@ -113,6 +113,14 @@
   @media (max-width: 768px) {
     html {
       zoom: 0.75;
+      height: 100%;
+      overflow-x: hidden;
+    }
+    
+    body {
+      height: 100%;
+      overflow-x: hidden;
+      position: relative;
     }
   }
 

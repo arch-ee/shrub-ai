@@ -12,7 +12,7 @@ const ThemeToggle = () => {
       variant="outline"
       size="icon"
       onClick={toggleTheme}
-      className="rounded-full w-10 h-10 bg-white/10 backdrop-blur-md border-white/20 dark:bg-gray-800/30 dark:border-gray-700/30 fixed top-4 right-4 z-50"
+      className="rounded-full w-10 h-10 bg-white/10 backdrop-blur-md border-white/20 dark:bg-gray-800/30 dark:border-gray-700/30 hidden"
       aria-label="Toggle theme"
     >
       {theme === 'light' ? (

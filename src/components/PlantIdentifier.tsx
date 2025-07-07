@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Upload, Sprout, HelpCircle, Settings } from 'lucide-react';
+import { Camera, Upload, Sprout, HelpCircle, Settings, Sun, Moon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -400,10 +400,7 @@ const PlantIdentifier = () => {
   const showShoppingOptions = settingsService.getShowShoppingOptions();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center transition-colors duration-300" style={{ paddingTop: '1cm', paddingBottom: '1cm' }}>
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center justify-center transition-colors duration-300 relative overflow-hidden" style={{ minHeight: '200vh', paddingTop: '1cm', paddingBottom: '1cm' }}>
       
       <div className="w-full max-w-md space-y-4">
         <div className="text-center space-y-2 animate-fade-in mt-8">
@@ -494,7 +491,7 @@ const PlantIdentifier = () => {
         </div>
       </div>
       
-      <div className="fixed bottom-4 left-4 flex flex-col gap-2">
+      <div className="fixed bottom-4 left-4 flex flex-col gap-2 z-50">
         <Button 
           variant="outline" 
           size="icon" 
@@ -507,6 +504,25 @@ const PlantIdentifier = () => {
         >
           <Settings className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
           <span className="sr-only">Settings</span>
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md min-h-[37px] min-w-[37px]"
+          onClick={() => {
+            // Access theme toggle from context
+            const themeToggle = document.querySelector('[aria-label="Toggle theme"]') as HTMLButtonElement;
+            if (themeToggle) {
+              themeToggle.click();
+            }
+            plantService.triggerHaptic();
+            soundService.playClick();
+          }}
+        >
+          <Sun className="h-5 w-5 text-leaf-600 dark:text-leaf-400 dark:hidden" />
+          <Moon className="h-5 w-5 text-leaf-600 dark:text-leaf-400 hidden dark:block" />
+          <span className="sr-only">Toggle theme</span>
         </Button>
         
         <Button 
