@@ -1,4 +1,3 @@
-
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { LocalNotifications, ScheduleOptions } from '@capacitor/local-notifications';
@@ -31,25 +30,41 @@ class PlantService {
   // Haptic feedback methods
   async triggerHaptic(style: ImpactStyle = ImpactStyle.Medium) {
     if (Capacitor.isNativePlatform()) {
-      await Haptics.impact({ style });
+      try {
+        await Haptics.impact({ style });
+      } catch (error) {
+        console.warn('Haptics not available:', error);
+      }
     }
   }
 
   async triggerHapticSuccess() {
     if (Capacitor.isNativePlatform()) {
-      await Haptics.notification({ type: NotificationType.Success });
+      try {
+        await Haptics.notification({ type: NotificationType.Success });
+      } catch (error) {
+        console.warn('Haptics not available:', error);
+      }
     }
   }
 
   async triggerHapticWarning() {
     if (Capacitor.isNativePlatform()) {
-      await Haptics.notification({ type: NotificationType.Warning });
+      try {
+        await Haptics.notification({ type: NotificationType.Warning });
+      } catch (error) {
+        console.warn('Haptics not available:', error);
+      }
     }
   }
 
   async triggerHapticError() {
     if (Capacitor.isNativePlatform()) {
-      await Haptics.notification({ type: NotificationType.Error });
+      try {
+        await Haptics.notification({ type: NotificationType.Error });
+      } catch (error) {
+        console.warn('Haptics not available:', error);
+      }
     }
   }
 
@@ -192,12 +207,16 @@ class PlantService {
   async setupNotificationListeners(onNotificationClicked: (plantId: string) => void) {
     if (!Capacitor.isNativePlatform()) return;
     
-    LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
-      const plantId = notification.notification.extra.plantId;
-      if (plantId) {
-        onNotificationClicked(plantId);
-      }
-    });
+    try {
+      LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
+        const plantId = notification.notification.extra?.plantId;
+        if (plantId) {
+          onNotificationClicked(plantId);
+        }
+      });
+    } catch (error) {
+      console.warn('Failed to setup notification listeners:', error);
+    }
   }
 
   calculateWateringInterval(waterNeeds: string): number {

@@ -5,13 +5,16 @@ const config: CapacitorConfig = {
   appName: 'shrubAI',
   webDir: 'dist',
   bundledWebRuntime: false,
+  server: {
+    androidScheme: 'https'
+  },
   android: {
     buildOptions: {
-      keystorePath: null,
-      keystorePassword: null,
-      keystoreAlias: null,
-      keystoreAliasPassword: null,
-      signingType: null
+      keystorePath: undefined,
+      keystorePassword: undefined,
+      keystoreAlias: undefined,
+      keystoreAliasPassword: undefined,
+      signingType: undefined
     }
   },
   plugins: {
@@ -22,6 +25,10 @@ const config: CapacitorConfig = {
       androidScaleType: "CENTER_CROP",
       splashImmersive: true,
       splashFullScreen: true,
+      showSpinner: false,
+      androidSpinnerStyle: "large",
+      iosSpinnerStyle: "small",
+      spinnerColor: "#5AB04B",
       splashShowOnlyFirstTime: false,
       androidSplashResourceName: "splash"
     },
@@ -40,8 +47,8 @@ const config: CapacitorConfig = {
     },
     LocalNotifications: {
       smallIcon: "ic_stat_icon_config_sample",
-      iconColor: "#488558",
-      sound: "beep.wav",
+      iconColor: "#5AB04B",
+      sound: "beep.wav"
     },
     StatusBar: {
       style: "DARK",
@@ -51,6 +58,11 @@ const config: CapacitorConfig = {
       resize: "body",
       style: "DARK",
       resizeOnFullScreen: true
+    },
+    Camera: {
+      permissions: {
+        camera: "This app needs access to camera to take photos of plants for identification."
+      }
     }
   }
 };

@@ -1,4 +1,3 @@
-
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -45,34 +44,38 @@ class PushNotificationService {
       return;
     }
 
-    // On successful registration
-    PushNotifications.addListener('registration', (token: PushNotificationToken) => {
-      console.log('Push notification token:', token.value);
-      if (onTokenReceived) {
-        onTokenReceived(token);
-      }
-    });
+    try {
+      // On successful registration
+      PushNotifications.addListener('registration', (token: PushNotificationToken) => {
+        console.log('Push notification token:', token.value);
+        if (onTokenReceived) {
+          onTokenReceived(token);
+        }
+      });
 
-    // On registration error
-    PushNotifications.addListener('registrationError', (error: any) => {
-      console.error('Push notification registration error:', error);
-    });
+      // On registration error
+      PushNotifications.addListener('registrationError', (error: any) => {
+        console.error('Push notification registration error:', error);
+      });
 
-    // When notification is received
-    PushNotifications.addListener('pushNotificationReceived', (notification: any) => {
-      console.log('Push notification received:', notification);
-      if (onNotificationReceived) {
-        onNotificationReceived(notification);
-      }
-    });
+      // When notification is received
+      PushNotifications.addListener('pushNotificationReceived', (notification: any) => {
+        console.log('Push notification received:', notification);
+        if (onNotificationReceived) {
+          onNotificationReceived(notification);
+        }
+      });
 
-    // When user taps on notification
-    PushNotifications.addListener('pushNotificationActionPerformed', (notification: PushNotificationActionPerformed) => {
-      console.log('Push notification action performed:', notification);
-      if (onActionPerformed) {
-        onActionPerformed(notification);
-      }
-    });
+      // When user taps on notification
+      PushNotifications.addListener('pushNotificationActionPerformed', (notification: PushNotificationActionPerformed) => {
+        console.log('Push notification action performed:', notification);
+        if (onActionPerformed) {
+          onActionPerformed(notification);
+        }
+      });
+    } catch (error) {
+      console.warn('Failed to add push notification listeners:', error);
+    }
   }
 
   removeAllListeners(): void {
@@ -80,7 +83,11 @@ class PushNotificationService {
       return;
     }
     
-    PushNotifications.removeAllListeners();
+    try {
+      PushNotifications.removeAllListeners();
+    } catch (error) {
+      console.warn('Failed to remove push notification listeners:', error);
+    }
   }
 
   // Send a local test notification
@@ -99,9 +106,9 @@ class PushNotificationService {
             id: Math.floor(Math.random() * 10000),
             schedule: { at: new Date(Date.now() + 1000) },
             sound: 'beep.wav',
-            attachments: null,
+            attachments: undefined,
             actionTypeId: '',
-            extra: null
+            extra: undefined
           }
         ]
       });
