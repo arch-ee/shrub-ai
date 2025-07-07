@@ -11,7 +11,7 @@ import { settingsService, AppSettings } from '@/services/settings-service';
 import { plantService } from '@/services/plant-service';
 import { soundService } from '@/services/sound-service';
 import { ImpactStyle } from '@capacitor/haptics';
-import { Type, ShoppingBag, Camera, Volume2 } from 'lucide-react';
+import { Type, ShoppingBag, Camera } from 'lucide-react';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -34,10 +34,13 @@ const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
     plantService.triggerHaptic(ImpactStyle.Light);
     soundService.playClickSoft();
     
-    // Apply text size immediately
-    document.documentElement.className = document.documentElement.className
-      .replace(/text-size-\w+/g, '')
-      .trim() + ` text-size-${size}`;
+    // Apply text size immediately to the document
+    const root = document.documentElement;
+    root.classList.remove('text-size-small', 'text-size-medium', 'text-size-large');
+    root.classList.add(`text-size-${size}`);
+    
+    // Also apply to body for immediate effect
+    document.body.style.fontSize = size === 'small' ? '14px' : size === 'large' ? '18px' : '16px';
   };
 
   const handleShoppingOptionsChange = (show: boolean) => {
@@ -59,7 +62,7 @@ const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md h-[80vh] flex flex-col">
+      <DialogContent className="max-w-md h-[80vh] flex flex-col" style={{ marginTop: '1cm', marginBottom: '1cm' }}>
         <DialogHeader className="pb-4">
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
@@ -76,7 +79,7 @@ const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
                 <Label className="text-base font-medium">Text Size</Label>
               </div>
               <Select value={settings.textSize} onValueChange={handleTextSizeChange}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full min-h-[37px]">
                   <SelectValue placeholder="Select text size" />
                 </SelectTrigger>
                 <SelectContent>
@@ -145,33 +148,6 @@ const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
 
             <Separator />
 
-            {/* Sound Settings */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Volume2 className="h-4 w-4 text-leaf-600 dark:text-leaf-400" />
-                <Label className="text-base font-medium">Sound Effects</Label>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label htmlFor="sound-toggle">Enable sound effects</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Play sounds for button clicks and actions
-                  </p>
-                </div>
-                <Switch
-                  id="sound-toggle"
-                  checked={soundService.isSoundOn()}
-                  onCheckedChange={(checked) => {
-                    soundService.toggleSound(checked);
-                    plantService.triggerHaptic(ImpactStyle.Light);
-                    if (checked) soundService.playClick();
-                  }}
-                />
-              </div>
-            </div>
-
-            <Separator />
-
             {/* App Info */}
             <div className="space-y-3">
               <Label className="text-base font-medium">About</Label>
@@ -184,14 +160,14 @@ const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
           </div>
         </ScrollArea>
 
-        <div className="pt-4 border-t">
+        <div className="pt-4 border-t" style={{ paddingBottom: '1cm' }}>
           <Button 
             onClick={() => {
               plantService.triggerHaptic(ImpactStyle.Light);
               soundService.playClickSoft();
               onOpenChange(false);
             }}
-            className="w-full bg-leaf-500 hover:bg-leaf-600 text-white"
+            className="w-full bg-leaf-500 hover:bg-leaf-600 text-white min-h-[37px]"
           >
             Done
           </Button>

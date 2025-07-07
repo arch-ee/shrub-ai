@@ -71,9 +71,10 @@ const PlantIdentifier = () => {
     
     // Apply saved text size
     const textSize = settingsService.getTextSize();
-    document.documentElement.className = document.documentElement.className
-      .replace(/text-size-\w+/g, '')
-      .trim() + ` text-size-${textSize}`;
+    const root = document.documentElement;
+    root.classList.remove('text-size-small', 'text-size-medium', 'text-size-large');
+    root.classList.add(`text-size-${textSize}`);
+    document.body.style.fontSize = textSize === 'small' ? '14px' : textSize === 'large' ? '18px' : '16px';
   }, []);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -399,7 +400,7 @@ const PlantIdentifier = () => {
   const showShoppingOptions = settingsService.getShowShoppingOptions();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center transition-colors duration-300" style={{ paddingTop: '1cm', paddingBottom: '1cm' }}>
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
@@ -435,7 +436,7 @@ const PlantIdentifier = () => {
                   )}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 no-margin">
                   <Button
                     variant="outline"
                     className="flex-1 bg-white hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600 min-h-[37px]"
@@ -526,7 +527,7 @@ const PlantIdentifier = () => {
       <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
       
       <Dialog open={showDocs} onOpenChange={setShowDocs}>
-        <DialogContent className="max-w-md h-[80vh] flex flex-col">
+        <DialogContent className="max-w-md h-[80vh] flex flex-col" style={{ marginTop: '1cm', marginBottom: '1cm' }}>
           <DialogHeader>
             <DialogTitle>Plant Identification Help</DialogTitle>
             <DialogDescription>

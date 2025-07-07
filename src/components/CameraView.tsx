@@ -56,26 +56,15 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
             if (capabilities.zoom && typeof capabilities.zoom === 'object' && 'max' in capabilities.zoom) {
               setMaxZoom(capabilities.zoom.max as number || 5);
             }
-            try {
-              // Apply zoom constraint if supported using the bracket notation
-              const trackSettings = videoTrack.getSettings();
-              if (trackSettings && videoTrack.applyConstraints) {
-                await videoTrack.applyConstraints({ 
-                  // Use advanced constraints for zoom
-                  advanced: [{
-                    [`zoom`]: zoomLevel
-                  }] as any
-                });
-              }
-            } catch (err) {
-              console.warn("Couldn't apply zoom constraint:", err);
-            }
           }
         }
         
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
           await videoRef.current.play();
+          
+          // Apply initial zoom level
+          applyZoom(zoomLevel);
           
           // Start simulating frame quality analysis
           startFrameAnalysis();
@@ -95,7 +84,29 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [facingMode, zoomLevel]);
+  }, [facingMode]);
+
+  const applyZoom = async (zoom: number) => {
+    if (!stream) return;
+    
+    const videoTrack = stream.getVideoTracks()[0];
+    if (videoTrack && videoTrack.applyConstraints) {
+      try {
+        await videoTrack.applyConstraints({
+          advanced: [{ zoom: zoom } as any]
+        });
+      } catch (err) {
+        console.warn("Couldn't apply zoom constraint:", err);
+        // Fallback: apply CSS transform zoom
+        if (videoRef.current) {
+          videoRef.current.style.transform = `scale(${zoom})`;
+        }
+      }
+    } else if (videoRef.current) {
+      // Fallback: apply CSS transform zoom
+      videoRef.current.style.transform = `scale(${zoom})`;
+    }
+  };
 
   const startFrameAnalysis = () => {
     // This simulates analyzing camera frame quality
@@ -166,23 +177,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
     
     setZoomLevel(newZoom);
     settingsService.setCameraZoomLevel(newZoom);
-    
-    // If stream exists, try to apply zoom directly to the track
-    if (stream) {
-      const videoTrack = stream.getVideoTracks()[0];
-      if (videoTrack && videoTrack.applyConstraints) {
-        try {
-          // Use bracket notation and 'as any' to work around TypeScript constraints
-          videoTrack.applyConstraints({ 
-            advanced: [{
-              [`zoom`]: newZoom
-            }] as any
-          }).catch(err => console.warn("Couldn't apply zoom:", err));
-        } catch (err) {
-          console.warn("Error applying zoom constraint:", err);
-        }
-      }
-    }
+    applyZoom(newZoom);
   };
 
   const handleZoomWheel = (e: React.WheelEvent) => {
@@ -196,7 +191,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
       <Card className="p-6 text-center">
         <h3 className="text-lg font-medium mb-4">Camera Access Required</h3>
         <p className="mb-4">Please allow camera access to use this feature.</p>
-        <Button onClick={onCancel} className="min-h-[37px]">Go Back</Button>
+        <Button onClick={onCancel} className="min-h-[37px] mt-[1cm] mb-[1cm]">Go Back</Button>
       </Card>
     );
   }
@@ -216,7 +211,7 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
         <CameraOverlay diagnosisStatus={diagnosisStatus} showTips={false} />
       </div>
       
-      <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent" style={{ paddingBottom: '1cm', paddingTop: '1cm' }}>
         <div className="flex justify-between items-center max-w-md mx-auto">
           <Button
             variant="ghost"
