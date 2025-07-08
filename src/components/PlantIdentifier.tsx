@@ -19,6 +19,7 @@ import { settingsService } from '@/services/settings-service';
 import { ImpactStyle } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { useTheme } from './ThemeProvider';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 
 interface PlantInfo {
   name: string;
@@ -69,6 +70,11 @@ const PlantIdentifier = () => {
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
       LocalNotifications.requestPermissions();
+      
+      // Lock orientation to portrait
+      ScreenOrientation.lock({ orientation: 'portrait' }).catch(err => {
+        console.warn('Could not lock orientation:', err);
+      });
     }
     
     // Apply saved text size
@@ -401,14 +407,61 @@ const PlantIdentifier = () => {
   const showShoppingOptions = settingsService.getShowShoppingOptions();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center transition-colors duration-300 relative overflow-hidden" style={{ minHeight: '100vh', paddingTop: '1cm', paddingBottom: '1cm' }}>
+    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center transition-colors duration-300 relative overflow-hidden" style={{ minHeight: '100vh' }}>
       
-      <div className="w-full max-w-md space-y-6 flex-1 flex flex-col justify-center px-4">
+      {/* Fixed button group positioned from top */}
+      <div className="fixed left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2" style={{ top: '75.6px' }}>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="bg-white/90 hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 rounded-full shadow-lg h-12 w-12 border-2 border-leaf-200 dark:border-gray-600"
+          onClick={() => {
+            setShowSettings(true);
+            plantService.triggerHaptic();
+            soundService.playClick();
+          }}
+        >
+          <Settings className="h-6 w-6 text-leaf-600 dark:text-leaf-400" />
+          <span className="sr-only">Settings</span>
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="bg-white/90 hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 rounded-full shadow-lg h-12 w-12 border-2 border-leaf-200 dark:border-gray-600"
+          onClick={() => {
+            toggleTheme();
+            plantService.triggerHaptic();
+            soundService.playClick();
+          }}
+        >
+          <Sun className="h-6 w-6 text-leaf-600 dark:text-leaf-400 dark:hidden" />
+          <Moon className="h-6 w-6 text-leaf-600 dark:text-leaf-400 hidden dark:block" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="bg-white/90 hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 rounded-full shadow-lg h-12 w-12 border-2 border-leaf-200 dark:border-gray-600"
+          onClick={() => {
+            setShowDocs(true);
+            plantService.triggerHaptic();
+            soundService.playClick();
+          }}
+        >
+          <HelpCircle className="h-6 w-6 text-leaf-600 dark:text-leaf-400" />
+          <span className="sr-only">Documentation</span>
+        </Button>
+      </div>
+
+      {/* Main content area - centered vertically */}
+      <div className="w-full max-w-md space-y-6 flex-1 flex flex-col justify-center px-4" style={{ paddingTop: '160px', paddingBottom: '40px' }}>
         <div className="text-center space-y-2 animate-fade-in">
           <h1 className="text-3xl font-medium text-leaf-900 dark:text-cream-100">your pocket botanist</h1>
         </div>
         
-        <div className="space-y-6 flex-1 flex flex-col justify-center">
+        <div className="space-y-6">
           {showCamera ? (
             <CameraView
               onCapture={handleCameraCapture}
@@ -492,55 +545,10 @@ const PlantIdentifier = () => {
         </div>
       </div>
       
-      <div className="fixed bottom-4 left-4 flex flex-col gap-3 z-50">
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md min-h-[48px] min-w-[48px]"
-          onClick={() => {
-            setShowSettings(true);
-            plantService.triggerHaptic();
-            soundService.playClick();
-          }}
-        >
-          <Settings className="h-6 w-6 text-leaf-600 dark:text-leaf-400" />
-          <span className="sr-only">Settings</span>
-        </Button>
-        
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md min-h-[48px] min-w-[48px]"
-          onClick={() => {
-            toggleTheme();
-            plantService.triggerHaptic();
-            soundService.playClick();
-          }}
-        >
-          <Sun className="h-6 w-6 text-leaf-600 dark:text-leaf-400 dark:hidden" />
-          <Moon className="h-6 w-6 text-leaf-600 dark:text-leaf-400 hidden dark:block" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-        
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md min-h-[48px] min-w-[48px]"
-          onClick={() => {
-            setShowDocs(true);
-            plantService.triggerHaptic();
-            soundService.playClick();
-          }}
-        >
-          <HelpCircle className="h-6 w-6 text-leaf-600 dark:text-leaf-400" />
-          <span className="sr-only">Documentation</span>
-        </Button>
-      </div>
-      
       <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
       
       <Dialog open={showDocs} onOpenChange={setShowDocs}>
-        <DialogContent className="max-w-md h-[80vh] flex flex-col" style={{ marginTop: '1cm', marginBottom: '1cm' }}>
+        <DialogContent className="max-w-md h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Plant Identification Help</DialogTitle>
             <DialogDescription>

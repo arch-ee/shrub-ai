@@ -100,6 +100,21 @@
   html {
     height: 100%;
     overflow-x: hidden;
+    /* Lock orientation to portrait on mobile */
+    @media (max-width: 768px) {
+      transform-origin: top left;
+      /* Prevent landscape orientation */
+      @media (orientation: landscape) {
+        transform: rotate(90deg);
+        transform-origin: top left;
+        width: 100vh;
+        height: 100vw;
+        overflow: hidden;
+        position: fixed;
+        top: 100%;
+        left: 0;
+      }
+    }
   }
 
   body {
@@ -109,6 +124,9 @@
     position: relative;
     margin: 0;
     padding: 0;
+    /* Ensure consistent viewport */
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
   }
   
   h1, h2, h3, h4, h5, h6 {

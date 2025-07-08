@@ -15,7 +15,13 @@ const config: CapacitorConfig = {
       keystoreAlias: undefined,
       keystoreAliasPassword: undefined,
       signingType: undefined
-    }
+    },
+    // Lock orientation to portrait
+    orientation: 'portrait'
+  },
+  ios: {
+    // Lock orientation to portrait
+    orientation: 'portrait'
   },
   plugins: {
     SplashScreen: {
