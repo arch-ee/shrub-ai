@@ -482,7 +482,7 @@ const PlantIdentifier = () => {
       {/* Main content area - centered vertically on launch, extends to bottom */}
       <div className="w-full max-w-md space-y-6 flex-1 flex flex-col justify-center" style={{ paddingBottom: '8rem' }}>
         <div className="text-center space-y-2 animate-fade-in">
-          <h1 className="text-3xl font-medium text-leaf-900 dark:text-cream-100">your pocket botanist</h1>
+          <h1 className="text-3xl font-medium text-leaf-900 dark:text-cream-100">your pocket botanist.</h1>
           {isAuthenticated && (
             <p className="text-sm text-leaf-600 dark:text-leaf-400">
               {remainingScans} identifications remaining today
@@ -611,7 +611,7 @@ const PlantIdentifier = () => {
               </div>
               <div>
                 <h3 className="font-medium mb-1">Settings</h3>
-                <p>Use the settings button to customize text size, shopping options, camera zoom, and sound effects.</p>
+                <p>Use the settings button to customize text size, shopping options and camera zoom.</p>
               </div>
               <div>
                 <h3 className="font-medium mb-1">Shopping Options</h3>
