@@ -97,8 +97,18 @@
     @apply border-border font-futura;
   }
 
+  html {
+    height: 100%;
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-background text-foreground font-futura;
+    height: 100%;
+    overflow-x: hidden;
+    position: relative;
+    margin: 0;
+    padding: 0;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -109,25 +119,20 @@
     @apply font-futura;
   }
 
-  /* Mobile zoom adjustment - 25% zoom out */
-  @media (max-width: 768px) {
-    html {
-      zoom: 0.75;
-      height: 100%;
-      overflow-x: hidden;
-    }
-    
-    body {
-      height: 100%;
-      overflow-x: hidden;
-      position: relative;
-    }
+  /* Text size classes that actually work */
+  .text-size-small {
+    font-size: 12px !important;
+    line-height: 1.3 !important;
   }
-
-  /* Text size classes */
+  
   .text-size-small * {
-    font-size: 14px !important;
-    line-height: 1.4 !important;
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+  }
+  
+  .text-size-medium {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
   }
   
   .text-size-medium * {
@@ -135,8 +140,13 @@
     line-height: 1.5 !important;
   }
   
+  .text-size-large {
+    font-size: 20px !important;
+    line-height: 1.6 !important;
+  }
+  
   .text-size-large * {
-    font-size: 18px !important;
+    font-size: 20px !important;
     line-height: 1.6 !important;
   }
 
@@ -170,21 +180,5 @@
   
   .border-b-3 {
     border-bottom-width: 3px;
-  }
-
-  /* Text size utilities */
-  .text-size-small {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-  }
-  
-  .text-size-medium {
-    font-size: 1rem;
-    line-height: 1.5rem;
-  }
-  
-  .text-size-large {
-    font-size: 1.125rem;
-    line-height: 1.75rem;
   }
 }

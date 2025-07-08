@@ -36,6 +36,12 @@ class SettingsService {
     }
   }
 
+  private applyTextSize() {
+    const root = document.documentElement;
+    root.classList.remove('text-size-small', 'text-size-medium', 'text-size-large');
+    root.classList.add(`text-size-${this.settings.textSize}`);
+  }
+
   getSettings(): AppSettings {
     return { ...this.settings };
   }
@@ -43,6 +49,11 @@ class SettingsService {
   updateSettings(newSettings: Partial<AppSettings>) {
     this.settings = { ...this.settings, ...newSettings };
     this.saveSettings();
+    
+    // Apply text size immediately if it changed
+    if (newSettings.textSize) {
+      this.applyTextSize();
+    }
   }
 
   getTextSize(): 'small' | 'medium' | 'large' {

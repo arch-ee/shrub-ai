@@ -18,6 +18,7 @@ import { soundService } from '@/services/sound-service';
 import { settingsService } from '@/services/settings-service';
 import { ImpactStyle } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { useTheme } from './ThemeProvider';
 
 interface PlantInfo {
   name: string;
@@ -61,6 +62,7 @@ const PlantIdentifier = () => {
   const [showSettings, setShowSettings] = useState(false);
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
   
   const geminiApiKey = 'AIzaSyDskk1srl5d4hsWDhSvzZSVi1vezIkgaf8';
   
@@ -74,7 +76,6 @@ const PlantIdentifier = () => {
     const root = document.documentElement;
     root.classList.remove('text-size-small', 'text-size-medium', 'text-size-large');
     root.classList.add(`text-size-${textSize}`);
-    document.body.style.fontSize = textSize === 'small' ? '14px' : textSize === 'large' ? '18px' : '16px';
   }, []);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -400,14 +401,14 @@ const PlantIdentifier = () => {
   const showShoppingOptions = settingsService.getShowShoppingOptions();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 p-4 flex flex-col items-center justify-center transition-colors duration-300 relative overflow-hidden" style={{ minHeight: '200vh', paddingTop: '1cm', paddingBottom: '1cm' }}>
+    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center transition-colors duration-300 relative overflow-hidden" style={{ minHeight: '100vh', paddingTop: '1cm', paddingBottom: '1cm' }}>
       
-      <div className="w-full max-w-md space-y-4">
-        <div className="text-center space-y-2 animate-fade-in mt-8">
-          <h1 className="text-2xl font-medium text-leaf-900 dark:text-cream-100">your pocket botanist</h1>
+      <div className="w-full max-w-md space-y-6 flex-1 flex flex-col justify-center px-4">
+        <div className="text-center space-y-2 animate-fade-in">
+          <h1 className="text-3xl font-medium text-leaf-900 dark:text-cream-100">your pocket botanist</h1>
         </div>
         
-        <div className="space-y-4">
+        <div className="space-y-6 flex-1 flex flex-col justify-center">
           {showCamera ? (
             <CameraView
               onCapture={handleCameraCapture}
@@ -415,11 +416,11 @@ const PlantIdentifier = () => {
               onAutoIdentify={handleAutoCaptureAndIdentify}
             />
           ) : (
-            <Card className="p-6 backdrop-blur-0 bg-white/100 border-leaf-100 shadow-lg animate-scale-in dark:bg-gray-800 dark:border-gray-700 dark:shadow-gray-900/30">
-              <div className="space-y-4">
+            <Card className="p-8 backdrop-blur-0 bg-white/100 border-leaf-100 shadow-lg animate-scale-in dark:bg-gray-800 dark:border-gray-700 dark:shadow-gray-900/30">
+              <div className="space-y-6">
                 <div className="flex justify-center">
                   {selectedImage ? (
-                    <div className="aspect-[3/4] relative w-full rounded-lg overflow-hidden"> {/* Changed to portrait aspect ratio */}
+                    <div className="aspect-[3/4] relative w-full rounded-lg overflow-hidden">
                       <img
                         src={selectedImage}
                         alt="Selected plant"
@@ -427,35 +428,35 @@ const PlantIdentifier = () => {
                       />
                     </div>
                   ) : (
-                    <div className="aspect-[3/4] w-full rounded-lg bg-cream-50 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-leaf-200 dark:border-gray-600"> {/* Changed to portrait aspect ratio */}
-                      <Sprout className="w-12 h-12 text-leaf-400 dark:text-leaf-300" />
+                    <div className="aspect-[3/4] w-full rounded-lg bg-cream-50 dark:bg-gray-700 flex items-center justify-center border-2 border-dashed border-leaf-200 dark:border-gray-600">
+                      <Sprout className="w-16 h-16 text-leaf-400 dark:text-leaf-300" />
                     </div>
                   )}
                 </div>
 
-                <div className="flex gap-2 no-margin">
+                <div className="flex gap-3 no-margin">
                   <Button
                     variant="outline"
-                    className="flex-1 bg-white hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600 min-h-[37px]"
+                    className="flex-1 bg-white hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600 min-h-[48px] text-lg"
                     onClick={() => {
                       setShowCamera(true);
                       plantService.triggerHaptic();
                       soundService.playClick();
                     }}
                   >
-                    <Camera className="w-4 h-4 mr-2" />
+                    <Camera className="w-5 h-5 mr-2" />
                     camera
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 bg-white hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600 min-h-[37px]"
+                    className="flex-1 bg-white hover:bg-white/80 transition-all dark:bg-gray-700/50 dark:hover:bg-gray-700/80 dark:text-cream-100 dark:border-gray-600 min-h-[48px] text-lg"
                     onClick={() => {
                       document.getElementById('upload')?.click();
                       plantService.triggerHaptic();
                       soundService.playClick();
                     }}
                   >
-                    <Upload className="w-4 h-4 mr-2" />
+                    <Upload className="w-5 h-5 mr-2" />
                     upload
                   </Button>
                 </div>
@@ -463,7 +464,7 @@ const PlantIdentifier = () => {
                 <Button 
                   onClick={identifyPlant}
                   disabled={isLoading || !selectedImage}
-                  className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700 min-h-[37px]"
+                  className="w-full bg-leaf-500 hover:bg-leaf-600 text-white dark:bg-leaf-600 dark:hover:bg-leaf-700 min-h-[48px] text-lg no-margin"
                 >
                   {isLoading ? "identifying..." : "identify plant"}
                 </Button>
@@ -491,51 +492,47 @@ const PlantIdentifier = () => {
         </div>
       </div>
       
-      <div className="fixed bottom-4 left-4 flex flex-col gap-2 z-50">
+      <div className="fixed bottom-4 left-4 flex flex-col gap-3 z-50">
         <Button 
           variant="outline" 
           size="icon" 
-          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md min-h-[37px] min-w-[37px]"
+          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md min-h-[48px] min-w-[48px]"
           onClick={() => {
             setShowSettings(true);
             plantService.triggerHaptic();
             soundService.playClick();
           }}
         >
-          <Settings className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
+          <Settings className="h-6 w-6 text-leaf-600 dark:text-leaf-400" />
           <span className="sr-only">Settings</span>
         </Button>
         
         <Button 
           variant="outline" 
           size="icon" 
-          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md min-h-[37px] min-w-[37px]"
+          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md min-h-[48px] min-w-[48px]"
           onClick={() => {
-            // Access theme toggle from context
-            const themeToggle = document.querySelector('[aria-label="Toggle theme"]') as HTMLButtonElement;
-            if (themeToggle) {
-              themeToggle.click();
-            }
+            toggleTheme();
             plantService.triggerHaptic();
             soundService.playClick();
           }}
         >
-          <Sun className="h-5 w-5 text-leaf-600 dark:text-leaf-400 dark:hidden" />
-          <Moon className="h-5 w-5 text-leaf-600 dark:text-leaf-400 hidden dark:block" />
+          <Sun className="h-6 w-6 text-leaf-600 dark:text-leaf-400 dark:hidden" />
+          <Moon className="h-6 w-6 text-leaf-600 dark:text-leaf-400 hidden dark:block" />
           <span className="sr-only">Toggle theme</span>
         </Button>
         
         <Button 
           variant="outline" 
           size="icon" 
-          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md min-h-[37px] min-w-[37px]"
+          className="bg-white/70 hover:bg-white/90 dark:bg-gray-800/70 dark:hover:bg-gray-800/90 rounded-full shadow-md min-h-[48px] min-w-[48px]"
           onClick={() => {
             setShowDocs(true);
             plantService.triggerHaptic();
             soundService.playClick();
           }}
         >
-          <HelpCircle className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
+          <HelpCircle className="h-6 w-6 text-leaf-600 dark:text-leaf-400" />
           <span className="sr-only">Documentation</span>
         </Button>
       </div>

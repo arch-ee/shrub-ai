@@ -33,14 +33,6 @@ const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
     settingsService.setTextSize(size);
     plantService.triggerHaptic(ImpactStyle.Light);
     soundService.playClickSoft();
-    
-    // Apply text size immediately to the document
-    const root = document.documentElement;
-    root.classList.remove('text-size-small', 'text-size-medium', 'text-size-large');
-    root.classList.add(`text-size-${size}`);
-    
-    // Also apply to body for immediate effect
-    document.body.style.fontSize = size === 'small' ? '14px' : size === 'large' ? '18px' : '16px';
   };
 
   const handleShoppingOptionsChange = (show: boolean) => {
@@ -79,13 +71,13 @@ const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
                 <Label className="text-base font-medium">Text Size</Label>
               </div>
               <Select value={settings.textSize} onValueChange={handleTextSizeChange}>
-                <SelectTrigger className="w-full min-h-[37px]">
+                <SelectTrigger className="w-full min-h-[48px]">
                   <SelectValue placeholder="Select text size" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="small">Small</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="large">Large</SelectItem>
+                  <SelectItem value="small">Small (12px)</SelectItem>
+                  <SelectItem value="medium">Medium (16px)</SelectItem>
+                  <SelectItem value="large">Large (20px)</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-sm text-muted-foreground">
@@ -167,7 +159,7 @@ const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
               soundService.playClickSoft();
               onOpenChange(false);
             }}
-            className="w-full bg-leaf-500 hover:bg-leaf-600 text-white min-h-[37px]"
+            className="w-full bg-leaf-500 hover:bg-leaf-600 text-white min-h-[48px]"
           >
             Done
           </Button>
