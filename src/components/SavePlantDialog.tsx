@@ -82,7 +82,6 @@ const SavePlantDialog = ({ open, onOpenChange, plantInfo, plantImage }: SavePlan
       });
 
       plantService.triggerHapticSuccess();
-      soundService.playSuccess();
       
       toast({
         title: "Plant saved!",
@@ -174,7 +173,6 @@ const SavePlantDialog = ({ open, onOpenChange, plantInfo, plantImage }: SavePlan
             variant="outline" 
             onClick={() => {
               plantService.triggerHaptic(ImpactStyle.Light);
-              soundService.playClickSoft();
               onOpenChange(false);
             }}
           >
@@ -183,7 +181,6 @@ const SavePlantDialog = ({ open, onOpenChange, plantInfo, plantImage }: SavePlan
           <Button 
             onClick={() => {
               plantService.triggerHaptic();
-              soundService.playClick();
               handleSave();
             }}
             className="bg-leaf-500 hover:bg-leaf-600 text-white"

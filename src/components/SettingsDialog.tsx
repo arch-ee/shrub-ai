@@ -32,7 +32,6 @@ const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
     setSettings(newSettings);
     settingsService.setTextSize(size);
     plantService.triggerHaptic(ImpactStyle.Light);
-    soundService.playClickSoft();
   };
 
   const handleShoppingOptionsChange = (show: boolean) => {
@@ -40,7 +39,6 @@ const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
     setSettings(newSettings);
     settingsService.setShowShoppingOptions(show);
     plantService.triggerHaptic(ImpactStyle.Light);
-    soundService.playClickSoft();
   };
 
   const handleCameraZoomChange = (zoom: number[]) => {
@@ -49,7 +47,6 @@ const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
     setSettings(newSettings);
     settingsService.setCameraZoomLevel(zoomLevel);
     plantService.triggerHaptic(ImpactStyle.Light);
-    soundService.playClickSoft();
   };
 
   return (
@@ -156,7 +153,6 @@ const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
           <Button 
             onClick={() => {
               plantService.triggerHaptic(ImpactStyle.Light);
-              soundService.playClickSoft();
               onOpenChange(false);
             }}
             className="w-full bg-leaf-500 hover:bg-leaf-600 text-white min-h-[48px]"

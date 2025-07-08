@@ -19,7 +19,8 @@ import { settingsService } from '@/services/settings-service';
 import { ImpactStyle } from '@capacitor/haptics';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { useTheme } from './ThemeProvider';
-import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { scanLimitService } from '@/services/scan-limit-service';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PlantInfo {
   name: string;
@@ -61,6 +62,8 @@ const PlantIdentifier = () => {
   const [showCamera, setShowCamera] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [remainingScans, setRemainingScans] = useState(10);
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const { theme, toggleTheme } = useTheme();
@@ -70,12 +73,10 @@ const PlantIdentifier = () => {
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
       LocalNotifications.requestPermissions();
-      
-      // Lock orientation to portrait
-      ScreenOrientation.lock({ orientation: 'portrait' }).catch(err => {
-        console.warn('Could not lock orientation:', err);
-      });
     }
+    
+    // Check authentication and scan limits
+    checkAuthAndLimits();
     
     // Apply saved text size
     const textSize = settingsService.getTextSize();
@@ -84,6 +85,23 @@ const PlantIdentifier = () => {
     root.classList.add(`text-size-${textSize}`);
   }, []);
 
+  const checkAuthAndLimits = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      setIsAuthenticated(true);
+      const { remainingScans } = await scanLimitService.canUserScan();
+      setRemainingScans(remainingScans);
+    } else {
+      // Sign in anonymously for tracking
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (!error && data.user) {
+        setIsAuthenticated(true);
+        const { remainingScans } = await scanLimitService.canUserScan();
+        setRemainingScans(remainingScans);
+      }
+    }
+  };
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -150,15 +168,29 @@ const PlantIdentifier = () => {
         variant: "destructive",
       });
       plantService.triggerHaptic(ImpactStyle.Medium);
-      soundService.playError();
       return;
     }
 
+    // Check scan limits
+    const { canScan, remainingScans: remaining } = await scanLimitService.canUserScan();
+    
+    if (!canScan) {
+      toast({
+        title: "Daily limit reached",
+        description: "You've used all 10 identifications for today. Limit resets at 12 AM PDT.",
+        variant: "destructive",
+      });
+      plantService.triggerHaptic(ImpactStyle.Heavy);
+      return;
+    }
     setIsLoading(true);
     plantService.triggerHaptic(ImpactStyle.Light);
-    soundService.playClick();
     
     try {
+      // Increment scan count
+      await scanLimitService.incrementScanCount();
+      setRemainingScans(remaining - 1);
+      
       const base64Image = imageSrc.split(',')[1];
       
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
@@ -231,7 +263,6 @@ const PlantIdentifier = () => {
             variant: "destructive",
           });
           plantService.triggerHaptic(ImpactStyle.Heavy);
-          soundService.playError();
         } else {
           const category = plantData.category || 'plant';
           
@@ -272,7 +303,6 @@ const PlantIdentifier = () => {
             description: `This appears to be a ${plantData.name}.`,
           });
           plantService.triggerHaptic(ImpactStyle.Medium);
-          soundService.playSuccess();
           
           if (category === 'plant' && plantData.hasRottenLeaves && plantData.health < 50) {
             toast({
@@ -323,7 +353,6 @@ const PlantIdentifier = () => {
           variant: "destructive",
         });
         plantService.triggerHaptic(ImpactStyle.Heavy);
-        soundService.playError();
       }
     } catch (error) {
       console.error("Error identifying item:", error);
@@ -346,7 +375,6 @@ const PlantIdentifier = () => {
       });
       
       plantService.triggerHaptic(ImpactStyle.Heavy);
-      soundService.playError();
     } finally {
       setIsLoading(false);
       setShowCamera(false); // Make sure camera is closed after identification
@@ -363,7 +391,6 @@ const PlantIdentifier = () => {
         variant: "destructive",
       });
       plantService.triggerHaptic(ImpactStyle.Medium);
-      soundService.playError();
     }
   };
 
@@ -410,7 +437,7 @@ const PlantIdentifier = () => {
     <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center transition-colors duration-300 relative overflow-hidden" style={{ minHeight: '100vh' }}>
       
       {/* Fixed button group positioned from top */}
-      <div className="fixed left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2" style={{ top: '75.6px' }}>
+      <div className="fixed left-4 z-50 flex flex-col gap-1" style={{ top: '75.6px' }}>
         <Button 
           variant="outline" 
           size="icon" 
@@ -418,7 +445,6 @@ const PlantIdentifier = () => {
           onClick={() => {
             setShowSettings(true);
             plantService.triggerHaptic();
-            soundService.playClick();
           }}
         >
           <Settings className="h-6 w-6 text-leaf-600 dark:text-leaf-400" />
@@ -432,7 +458,6 @@ const PlantIdentifier = () => {
           onClick={() => {
             toggleTheme();
             plantService.triggerHaptic();
-            soundService.playClick();
           }}
         >
           <Sun className="h-6 w-6 text-leaf-600 dark:text-leaf-400 dark:hidden" />
@@ -447,7 +472,6 @@ const PlantIdentifier = () => {
           onClick={() => {
             setShowDocs(true);
             plantService.triggerHaptic();
-            soundService.playClick();
           }}
         >
           <HelpCircle className="h-6 w-6 text-leaf-600 dark:text-leaf-400" />
@@ -459,6 +483,11 @@ const PlantIdentifier = () => {
       <div className="w-full max-w-md space-y-6 flex-1 flex flex-col justify-center px-4" style={{ paddingTop: '160px', paddingBottom: '40px' }}>
         <div className="text-center space-y-2 animate-fade-in">
           <h1 className="text-3xl font-medium text-leaf-900 dark:text-cream-100">your pocket botanist</h1>
+          {isAuthenticated && (
+            <p className="text-sm text-leaf-600 dark:text-leaf-400">
+              {remainingScans} identifications remaining today
+            </p>
+          )}
         </div>
         
         <div className="space-y-6">
@@ -494,7 +523,6 @@ const PlantIdentifier = () => {
                     onClick={() => {
                       setShowCamera(true);
                       plantService.triggerHaptic();
-                      soundService.playClick();
                     }}
                   >
                     <Camera className="w-5 h-5 mr-2" />
@@ -506,7 +534,6 @@ const PlantIdentifier = () => {
                     onClick={() => {
                       document.getElementById('upload')?.click();
                       plantService.triggerHaptic();
-                      soundService.playClick();
                     }}
                   >
                     <Upload className="w-5 h-5 mr-2" />

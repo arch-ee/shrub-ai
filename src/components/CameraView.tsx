@@ -131,7 +131,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
     
     if (isNative) {
       plantService.triggerHaptic(ImpactStyle.Medium);
-      soundService.playClick();
     }
     
     const video = videoRef.current;
@@ -155,7 +154,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
   const toggleCamera = async () => {
     if (isNative) {
       plantService.triggerHaptic(ImpactStyle.Light);
-      soundService.playClickSoft();
     }
     setFacingMode(facingMode === 'environment' ? 'user' : 'environment');
   };
@@ -163,7 +161,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
   const adjustZoom = (direction: 'in' | 'out') => {
     if (isNative) {
       plantService.triggerHaptic(ImpactStyle.Light);
-      soundService.playClickSoft();
     }
     
     const step = 0.25;
@@ -220,7 +217,6 @@ const CameraView: React.FC<CameraViewProps> = ({ onCapture, onCancel, onAutoIden
             onClick={() => {
               if (isNative) {
                 plantService.triggerHaptic();
-                soundService.playClickSoft();
               }
               onCancel();
             }}

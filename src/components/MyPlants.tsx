@@ -29,7 +29,6 @@ const MyPlants = () => {
     const updatedPlant = plantService.waterPlant(plantId);
     if (updatedPlant) {
       plantService.triggerHapticSuccess();
-      soundService.playSuccess();
       toast({
         title: "Plant watered!",
         description: `${updatedPlant.name} has been watered.`
@@ -43,7 +42,6 @@ const MyPlants = () => {
       const deleted = plantService.deletePlant(plantId);
       if (deleted) {
         plantService.triggerHaptic();
-        soundService.playClickSoft();
         toast({
           title: "Plant deleted",
           description: `${plantName} has been removed from your collection.`
@@ -139,7 +137,6 @@ const MyPlants = () => {
                     variant="ghost" 
                     onClick={() => {
                       plantService.triggerHaptic(ImpactStyle.Light);
-                      soundService.playClick();
                       handleWaterPlant(plant.id);
                     }}
                     className="text-blue-500 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/30"
@@ -153,7 +150,6 @@ const MyPlants = () => {
                     variant="ghost" 
                     onClick={() => {
                       plantService.triggerHaptic(ImpactStyle.Medium);
-                      soundService.playClickSoft();
                       handleDeletePlant(plant.id, plant.name);
                     }}
                     className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30"
