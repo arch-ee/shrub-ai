@@ -434,53 +434,53 @@ const PlantIdentifier = () => {
   const showShoppingOptions = settingsService.getShowShoppingOptions();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center transition-colors duration-300 relative overflow-hidden" style={{ minHeight: '100vh' }}>
+    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center transition-colors duration-300 relative overflow-hidden" style={{ minHeight: '100vh', transform: 'scale(0.85)', transformOrigin: 'center center' }}>
       
-      {/* Fixed button group positioned from top */}
-      <div className="fixed left-4 z-50 flex flex-col gap-1" style={{ top: '75.6px' }}>
+      {/* Fixed button group positioned at bottom left */}
+      <div className="fixed left-4 bottom-4 z-50 flex flex-col gap-0" style={{ gap: '1.5px' }}>
         <Button 
           variant="outline" 
           size="icon" 
-          className="bg-white/90 hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 rounded-full shadow-lg h-12 w-12 border-2 border-leaf-200 dark:border-gray-600"
+          className="bg-white/90 hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 rounded-full shadow-lg h-10 w-10 border-2 border-leaf-200 dark:border-gray-600"
           onClick={() => {
             setShowSettings(true);
             plantService.triggerHaptic();
           }}
         >
-          <Settings className="h-6 w-6 text-leaf-600 dark:text-leaf-400" />
+          <Settings className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
           <span className="sr-only">Settings</span>
         </Button>
         
         <Button 
           variant="outline" 
           size="icon" 
-          className="bg-white/90 hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 rounded-full shadow-lg h-12 w-12 border-2 border-leaf-200 dark:border-gray-600"
+          className="bg-white/90 hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 rounded-full shadow-lg h-10 w-10 border-2 border-leaf-200 dark:border-gray-600"
           onClick={() => {
             toggleTheme();
             plantService.triggerHaptic();
           }}
         >
-          <Sun className="h-6 w-6 text-leaf-600 dark:text-leaf-400 dark:hidden" />
-          <Moon className="h-6 w-6 text-leaf-600 dark:text-leaf-400 hidden dark:block" />
+          <Sun className="h-5 w-5 text-leaf-600 dark:text-leaf-400 dark:hidden" />
+          <Moon className="h-5 w-5 text-leaf-600 dark:text-leaf-400 hidden dark:block" />
           <span className="sr-only">Toggle theme</span>
         </Button>
         
         <Button 
           variant="outline" 
           size="icon" 
-          className="bg-white/90 hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 rounded-full shadow-lg h-12 w-12 border-2 border-leaf-200 dark:border-gray-600"
+          className="bg-white/90 hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 rounded-full shadow-lg h-10 w-10 border-2 border-leaf-200 dark:border-gray-600"
           onClick={() => {
             setShowDocs(true);
             plantService.triggerHaptic();
           }}
         >
-          <HelpCircle className="h-6 w-6 text-leaf-600 dark:text-leaf-400" />
+          <HelpCircle className="h-5 w-5 text-leaf-600 dark:text-leaf-400" />
           <span className="sr-only">Documentation</span>
         </Button>
       </div>
 
-      {/* Main content area - centered vertically */}
-      <div className="w-full max-w-md space-y-6 flex-1 flex flex-col justify-center px-4" style={{ paddingTop: '160px', paddingBottom: '40px' }}>
+      {/* Main content area - centered vertically, no movement during identification */}
+      <div className="w-full max-w-md space-y-6 flex-1 flex flex-col justify-center px-4" style={{ paddingTop: '40px', paddingBottom: '40px' }}>
         <div className="text-center space-y-2 animate-fade-in">
           <h1 className="text-3xl font-medium text-leaf-900 dark:text-cream-100">your pocket botanist</h1>
           {isAuthenticated && (
