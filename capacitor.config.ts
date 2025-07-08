@@ -3,8 +3,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'app.archie.shrubAI',
   appName: 'shrubAI',
-  webDir: 'dist',
-  bundledWebRuntime: false,
+  webDir: 'android/app/src/main/assets/public',
   server: {
     androidScheme: 'https'
   },
