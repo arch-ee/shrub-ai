@@ -577,7 +577,8 @@ const PlantIdentifier = () => {
       {/* Fine print disclaimer */}
       <div className="fixed bottom-2 left-1/2 transform -translate-x-1/2 z-40">
         <p className="text-gray-900 dark:text-gray-100 opacity-40 text-center px-4" style={{ fontSize: '10px' }}>
-          Information may be false, always verify with a trusted source.
+          Information may be false, always verify with a trusted source. 
+          <a href="/privacy" className="underline ml-1 hover:opacity-60">Privacy Policy</a>
         </p>
       </div>
       
@@ -635,4 +636,3 @@ const PlantIdentifier = () => {
 };
 
 export default PlantIdentifier;
-
