@@ -30,8 +30,8 @@ const OnlineStores: React.FC<OnlineStoresProps> = ({ stores }) => {
         <ShoppingBag className="w-4 h-4 mr-2 text-leaf-500 dark:text-leaf-400" />
         Buy Online
       </h3>
-      <ScrollArea className="w-full max-h-96">
-        <div className="space-y-3 pr-4">
+      <ScrollArea className="w-full max-h-96 overflow-y-auto">
+        <div className="space-y-3 pr-4 pb-4">
           {stores.map((store, index) => (
             <div 
               key={index} 

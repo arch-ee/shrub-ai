@@ -434,10 +434,10 @@ const PlantIdentifier = () => {
   const showShoppingOptions = settingsService.getShowShoppingOptions();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center transition-colors duration-300 relative overflow-hidden" style={{ minHeight: '100vh', transform: 'scale(0.85)', transformOrigin: 'center center' }}>
+    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center transition-colors duration-300 relative overflow-hidden p-8" style={{ minHeight: '100vh' }}>
       
       {/* Fixed button group positioned at bottom left */}
-      <div className="fixed left-4 bottom-4 z-50 flex flex-col gap-0" style={{ gap: '1.5px' }}>
+      <div className="fixed left-8 bottom-8 z-50 flex flex-col gap-2">
         <Button 
           variant="outline" 
           size="icon" 
@@ -479,8 +479,8 @@ const PlantIdentifier = () => {
         </Button>
       </div>
 
-      {/* Main content area - centered vertically, no movement during identification */}
-      <div className="w-full max-w-md space-y-6 flex-1 flex flex-col justify-center px-4" style={{ paddingTop: '40px', paddingBottom: '40px' }}>
+      {/* Main content area - centered vertically on launch, extends to bottom */}
+      <div className="w-full max-w-md space-y-6 flex-1 flex flex-col justify-center" style={{ paddingBottom: '8rem' }}>
         <div className="text-center space-y-2 animate-fade-in">
           <h1 className="text-3xl font-medium text-leaf-900 dark:text-cream-100">your pocket botanist</h1>
           {isAuthenticated && (
