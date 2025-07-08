@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Camera, Upload, Sprout, HelpCircle, Settings, Sun, Moon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -437,7 +438,7 @@ const PlantIdentifier = () => {
     <div className="min-h-screen bg-gradient-to-br from-cream-50 via-white to-cream-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center transition-colors duration-300 relative overflow-hidden p-8" style={{ minHeight: '100vh' }}>
       
       {/* Fixed button group positioned at bottom left */}
-      <div className="fixed left-8 bottom-8 z-50 flex flex-col gap-2">
+      <div className="fixed left-8 bottom-8 z-50 flex flex-col gap-1">
         <Button 
           variant="outline" 
           size="icon" 
@@ -570,6 +571,13 @@ const PlantIdentifier = () => {
             </>
           )}
         </div>
+      </div>
+      
+      {/* Fine print disclaimer */}
+      <div className="fixed bottom-2 left-1/2 transform -translate-x-1/2 z-40">
+        <p className="text-xs text-gray-500 dark:text-gray-400 text-center px-4">
+          Never fully base off of AI readings. If you wanna eat something consult a different source.
+        </p>
       </div>
       
       <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
