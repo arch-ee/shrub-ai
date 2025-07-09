@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { Camera, Upload, Sprout, HelpCircle, Settings, Sun, Moon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -23,6 +21,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { useTheme } from './ThemeProvider';
 import { scanLimitService } from '@/services/scan-limit-service';
 import { supabase } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
 
 interface PlantInfo {
   name: string;
@@ -578,7 +577,7 @@ const PlantIdentifier = () => {
       <div className="fixed bottom-2 left-1/2 transform -translate-x-1/2 z-40">
         <p className="text-gray-900 dark:text-gray-100 opacity-40 text-center px-4" style={{ fontSize: '10px' }}>
           Information may be false, always verify with a trusted source. 
-          <a href="/privacy" className="underline ml-1 hover:opacity-60">Privacy Policy</a>
+          <Link to="/privacy" className="underline ml-1 hover:opacity-60">Privacy Policy</Link>
         </p>
       </div>
       
