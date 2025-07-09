@@ -40,30 +40,41 @@ class ScanLimitService {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
-      const { error } = await supabase
+      // First, try to get the current count
+      const { data: existingRecord } = await supabase
         .from('user_scans')
-        .upsert({
-          user_id: user.id,
-          scan_date: pdtDate,
-          scan_count: 1
-        }, {
-          onConflict: 'user_id,scan_date',
-          ignoreDuplicates: false
-        });
+        .select('scan_count')
+        .eq('user_id', user.id)
+        .eq('scan_date', pdtDate)
+        .maybeSingle();
 
-      if (error) {
-        // If upsert fails, try to increment existing record
-        const { error: updateError } = await supabase
+      if (existingRecord) {
+        // Update existing record
+        const { error } = await supabase
           .from('user_scans')
           .update({ 
-            scan_count: supabase.raw('scan_count + 1'),
+            scan_count: existingRecord.scan_count + 1,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', user.id)
           .eq('scan_date', pdtDate);
 
-        if (updateError) {
-          console.error('Error incrementing scan count:', updateError);
+        if (error) {
+          console.error('Error updating scan count:', error);
+          return false;
+        }
+      } else {
+        // Insert new record
+        const { error } = await supabase
+          .from('user_scans')
+          .insert({
+            user_id: user.id,
+            scan_date: pdtDate,
+            scan_count: 1
+          });
+
+        if (error) {
+          console.error('Error inserting scan count:', error);
           return false;
         }
       }
