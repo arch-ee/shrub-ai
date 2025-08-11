@@ -87,19 +87,54 @@ const PlantIdentifier = () => {
   }, []);
 
   const checkAuthAndLimits = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-      setIsAuthenticated(true);
-      const { remainingScans } = await scanLimitService.canUserScan();
-      setRemainingScans(remainingScans);
-    } else {
-      // Sign in anonymously for tracking
-      const { data, error } = await supabase.auth.signInAnonymously();
-      if (!error && data.user) {
+    try {
+      const { data: { user }, error: getUserError } = await supabase.auth.getUser();
+      
+      if (getUserError) {
+        // If there's an error getting the user, clear the session and try again
+        await supabase.auth.signOut();
+        throw getUserError;
+      }
+      
+      if (user) {
         setIsAuthenticated(true);
         const { remainingScans } = await scanLimitService.canUserScan();
         setRemainingScans(remainingScans);
+      } else {
+        // Sign in anonymously for tracking
+        const { data, error } = await supabase.auth.signInAnonymously();
+        if (!error && data.user) {
+          setIsAuthenticated(true);
+          const { remainingScans } = await scanLimitService.canUserScan();
+          setRemainingScans(remainingScans);
+        }
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      
+      // Check if it's a refresh token error
+      const errorMessage = error?.message || '';
+      if (errorMessage.includes('Invalid Refresh Token') || 
+          errorMessage.includes('Refresh Token Not Found') ||
+          errorMessage.includes('Failed to fetch')) {
+        
+        try {
+          // Clear the corrupted session
+          await supabase.auth.signOut();
+          
+          // Attempt to sign in anonymously with a fresh session
+          const { data, error: signInError } = await supabase.auth.signInAnonymously();
+          if (!signInError && data.user) {
+            setIsAuthenticated(true);
+            const { remainingScans } = await scanLimitService.canUserScan();
+            setRemainingScans(remainingScans);
+          }
+        } catch (retryError) {
+          console.error('Failed to recover from authentication error:', retryError);
+          // Set default values if all authentication attempts fail
+          setIsAuthenticated(false);
+          setRemainingScans(10);
+        }
       }
     }
   };
